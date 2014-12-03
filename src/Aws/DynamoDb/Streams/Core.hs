@@ -169,6 +169,7 @@ smAmzId2
 smAmzId2 i StreamsMetadata{..} =
   (\_smAmzId2 → StreamsMetadata{..})
     <$> i _smAmzId2
+{-# INLINE smAmzId2 #-}
 
 -- | A lens for '_smRequestId'.
 --
@@ -184,6 +185,7 @@ smRequestId
 smRequestId i StreamsMetadata{..} =
   (\_smRequestId → StreamsMetadata{..})
     <$> i _smRequestId
+{-# INLINE smRequestId #-}
 
 data StreamsConfiguration qt
   = StreamsConfiguration
@@ -203,6 +205,7 @@ stcRegion
   → f (StreamsConfiguration qt)
 stcRegion i StreamsConfiguration{..} =
   StreamsConfiguration <$> i _stcRegion
+{-# INLINE stcRegion #-}
 
 data StreamsQuery
   = StreamsQuery
@@ -224,6 +227,7 @@ stqAction
 stqAction i StreamsQuery{..} =
   (\_stqAction → StreamsQuery{..})
     <$> i _stqAction
+{-# INLINE stqAction #-}
 
 -- | A lens for '_stqBody'
 --
@@ -239,6 +243,7 @@ stqBody
 stqBody i StreamsQuery{..} =
   (\_stqBody → StreamsQuery{..})
     <$> i _stqBody
+{-# INLINE stqBody #-}
 
 streamsTargetHeader
   ∷ StreamsAction
@@ -324,6 +329,7 @@ sterdErrorCode
 sterdErrorCode i StreamsErrorResponseData{..} =
   (\_sterdErrorCode → StreamsErrorResponseData{..})
     <$> i _sterdErrorCode
+{-# INLINE sterdErrorCode #-}
 
 -- | A lens for '_sterdErrorMessage'
 --
@@ -339,6 +345,7 @@ sterdErrorMessage
 sterdErrorMessage i StreamsErrorResponseData{..} =
   (\_sterdErrorMessage → StreamsErrorResponseData{..})
     <$> i _sterdErrorMessage
+{-# INLINE sterdErrorMessage #-}
 
 data StreamsOtherErrorData
   = StreamsOtherErrorData
@@ -360,6 +367,7 @@ stoeStatus
 stoeStatus i StreamsOtherErrorData{..} =
   (\_stoeStatus → StreamsOtherErrorData{..})
     <$> i _stoeStatus
+{-# INLINE stoeStatus #-}
 
 -- | A lens for '_stoeMessage'
 --
@@ -375,6 +383,7 @@ stoeMessage
 stoeMessage i StreamsOtherErrorData{..} =
   (\_stoeMessage → StreamsOtherErrorData{..})
     <$> i _stoeMessage
+{-# INLINE stoeMessage #-}
 
 data StreamsErrorResponse
   = StreamsResponseJsonError T.Text
@@ -400,6 +409,7 @@ _StreamsResponseJsonError =
         StreamsResponseJsonError e → Right e
         e → Left e
       fro = either pure (fmap StreamsResponseJsonError)
+{-# INLINE _StreamsResponseJsonError #-}
 
 -- | A prism for 'StreamsErrorResponse'
 --
@@ -419,6 +429,7 @@ _StreamsErrorResponse =
         StreamsErrorResponse e → Right e
         e → Left e
       fro = either pure (fmap StreamsErrorResponse)
+{-# INLINE _StreamsErrorResponse #-}
 
 -- | A prism for 'StreamsOtherError'
 --
@@ -438,6 +449,7 @@ _StreamsOtherError =
         StreamsOtherError e → Right e
         e → Left e
       fro = either pure (fmap StreamsOtherError)
+{-# INLINE _StreamsOtherError #-}
 
 instance Exception StreamsErrorResponse
 
