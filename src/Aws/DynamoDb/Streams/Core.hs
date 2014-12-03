@@ -98,6 +98,8 @@ data StreamsAction
   | ListStreams
   deriving (Eq, Ord, Enum, Bounded, Typeable, Read, Show)
 
+-- | Render a 'StreamsAction' as a string for use in an AWS request.
+--
 streamsActionToText
   ∷ IsString s
   ⇒ StreamsAction
@@ -108,6 +110,8 @@ streamsActionToText = \case
   GetShardIterator → "GetShardIterator"
   ListStreams → "ListStreams"
 
+-- | Parse a 'StreamsAction'; this is the inverse of 'streamsActionToText'.
+--
 parseStreamsAction
   ∷ P.CharParsing m
   ⇒ m StreamsAction
@@ -127,6 +131,8 @@ instance AwsType StreamsAction where
   toText = streamsActionToText
   parse = parseStreamsAction
 
+-- | Currently, only 'UsEast1' and 'EuWest1' are supported.
+--
 streamsServiceEndpoint
   ∷ Region
   → B8.ByteString
@@ -196,7 +202,7 @@ data StreamsConfiguration qt
   { _stcRegion ∷ !Region
   } deriving (Eq, Show)
 
--- | A lens for '_stcRegion'
+-- | A lens for '_stcRegion'.
 --
 -- @
 -- 'stcRegion' ∷ Lens' 'StreamsConfiguration' 'Region'
@@ -217,7 +223,7 @@ data StreamsQuery
   , _stqBody ∷ !(Maybe B.ByteString)
   } deriving (Eq, Show)
 
--- | A lens for '_stqAction'
+-- | A lens for '_stqAction'.
 --
 -- @
 -- 'stqAction' ∷ Lens' 'StreamsQuery' 'StreamsAction'
@@ -233,7 +239,7 @@ stqAction i StreamsQuery{..} =
     <$> i _stqAction
 {-# INLINE stqAction #-}
 
--- | A lens for '_stqBody'
+-- | A lens for '_stqBody'.
 --
 -- @
 -- 'stqBody' ∷ Lens' 'StreamsQuery' ('Maybe' 'B.ByteString')
@@ -319,7 +325,7 @@ data StreamsErrorResponseData
   , _sterdErrorMessage ∷ !T.Text
   } deriving (Eq, Show, Typeable)
 
--- | A lens for '_sterdErrorCode'
+-- | A lens for '_sterdErrorCode'.
 --
 -- @
 -- 'sterdErrorCode' ∷ Lens' 'StreamsErrorResponseData' 'T.Text'
@@ -335,7 +341,7 @@ sterdErrorCode i StreamsErrorResponseData{..} =
     <$> i _sterdErrorCode
 {-# INLINE sterdErrorCode #-}
 
--- | A lens for '_sterdErrorMessage'
+-- | A lens for '_sterdErrorMessage'.
 --
 -- @
 -- 'sterdErrorMessage' ∷ Lens' 'StreamsErrorResponseData' 'T.Text'
@@ -395,7 +401,7 @@ data StreamsErrorResponse
   | StreamsOtherError StreamsOtherErrorData
   deriving (Eq, Show, Typeable)
 
--- | A prism for 'StreamsResponseJsonError'
+-- | A prism for 'StreamsResponseJsonError'.
 --
 -- @
 -- '_StreamsResponseJsonError' ∷ Prism' 'StreamsErrorResponse' 'T.Text'
@@ -415,7 +421,7 @@ _StreamsResponseJsonError =
       fro = either pure (fmap StreamsResponseJsonError)
 {-# INLINE _StreamsResponseJsonError #-}
 
--- | A prism for 'StreamsErrorResponse'
+-- | A prism for 'StreamsErrorResponse'.
 --
 -- @
 -- '_StreamsErrorResponse' ∷ Prism' 'StreamsErrorResponse' 'StreamsErrorResponseData'
@@ -435,7 +441,7 @@ _StreamsErrorResponse =
       fro = either pure (fmap StreamsErrorResponse)
 {-# INLINE _StreamsErrorResponse #-}
 
--- | A prism for 'StreamsOtherError'
+-- | A prism for 'StreamsOtherError'.
 --
 -- @
 -- '_StreamsOtherError' ∷ Prism' 'StreamsErrorResponse' 'StreamsOtherErrorData'
