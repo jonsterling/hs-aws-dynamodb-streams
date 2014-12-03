@@ -71,6 +71,7 @@ module Aws.DynamoDb.Streams.Types
 , strSequenceNumber
 , strSizeBytes
 , strStreamViewType
+, StreamId
 ) where
 
 import Control.Applicative
@@ -871,4 +872,21 @@ strStreamViewType i StreamRecord{..} =
     <$> i _strStreamViewType
 {-# INLINE strStreamViewType #-}
 
+
+-- | Identifier for a stream.
+--
+-- Length constraints: @56 ≤ n ≤ 128@.
+--
+newtype StreamId
+  = StreamId
+  { _stidText ∷ T.Text
+  } deriving (Eq, Ord, Typeable, Show, Read)
+
+instance ToJSON StreamId where
+  toJSON = toJSON ∘ _stidText
+
+instance FromJSON StreamId where
+  parseJSON =
+    withText "StreamId" $
+      pure ∘ StreamId
 
