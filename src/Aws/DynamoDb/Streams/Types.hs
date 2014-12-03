@@ -264,7 +264,7 @@ instance FromJSON AttributeValue where
 
     where
       parseBin =
-        either fail return
+        either fail pure
           ∘ B64.decode
           ∘ T.encodeUtf8
 
