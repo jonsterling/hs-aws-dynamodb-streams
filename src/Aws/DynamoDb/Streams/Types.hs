@@ -78,8 +78,19 @@ module Aws.DynamoDb.Streams.Types
 , _StatusEnabled
 , _StatusDisabling
 , _StatusDisabled
+, StreamDescription(..)
+, sdCreationRequestDateTime
+, sdKeySchema
+, sdLastEvaluatedShardId
+, sdShards
+, sdStreamARN
+, sdStreamId
+, sdStreamStatus
+, sdStreamViewType
+, sdTableName
 ) where
 
+import Aws.Core
 import Control.Applicative
 import Control.Applicative.Unicode
 import Control.Monad.Unicode
@@ -95,8 +106,10 @@ import Data.Monoid.Unicode
 import Data.Profunctor
 import Data.Scientific
 import Data.String
+import Data.Time
 import Data.Typeable
 import Prelude.Unicode
+import System.Locale
 
 -- | Identifier for a shard.
 --
@@ -1031,3 +1044,195 @@ _StatusDisabled =
         e → Left e
       fro = either pure (const $ pure StatusDisabled)
 {-# INLINE _StatusDisabled #-}
+
+
+data StreamDescription
+  = StreamDescription
+  { _sdCreationRequestDateTime ∷ !(Maybe UTCTime)
+  , _sdKeySchema ∷ ![KeySchemaElement]
+  , _sdLastEvaluatedShardId ∷ !(Maybe ShardId)
+  , _sdShards ∷ ![Shard]
+  , _sdStreamARN ∷ !(Maybe T.Text)
+  , _sdStreamId ∷ !(Maybe StreamId)
+  , _sdStreamStatus ∷ !(Maybe StreamStatus)
+  , _sdStreamViewType ∷ !(Maybe StreamViewType)
+  , _sdTableName ∷ !(Maybe T.Text)
+  } deriving (Eq, Ord, Show, Read, Typeable)
+
+instance ToJSON StreamDescription where
+  toJSON StreamDescription{..} = object
+    [ "CreationRequestDateTime" .= fmap formatDateTime' _sdCreationRequestDateTime
+    , "KeySchema" .= _sdKeySchema
+    , "Shards" .= _sdShards
+    , "StreamARN" .= _sdStreamARN
+    , "StreamId" .= _sdStreamId
+    , "StreamStatus" .= _sdStreamStatus
+    , "StreamViewType" .= _sdStreamViewType
+    , "TableName" .= _sdTableName
+    ]
+    where
+      formatDateTime' =
+        formatTime defaultTimeLocale iso8601UtcDate
+
+instance FromJSON StreamDescription where
+  parseJSON =
+    withObject "StreamDescription" $ \o →
+      pure StreamDescription
+        ⊛ (parseDateTime' =<< o .:? "CreationRequestDateTime")
+        ⊛ o .:? "KeySchema" .!= []
+        ⊛ o .: "LastEvaluatedShardId"
+        ⊛ o .:? "Shards" .!= []
+        ⊛ o .: "StreamARN"
+        ⊛ o .: "StreamId"
+        ⊛ o .: "StreamStatus"
+        ⊛ o .: "StreamViewType"
+        ⊛ o .: "TableName"
+    where
+      parseDateTime' =
+        maybe empty pure
+          ∘ fmap parseHttpDate
+
+-- | A lens for '_sdCreationRequestDateTime'.
+--
+-- @
+-- 'sdCreationRequestDateTime' ∷ Lens' 'StreamDescription' ('Maybe' 'UTCTime')
+-- @
+--
+sdCreationRequestDateTime
+  ∷ Functor f
+  ⇒ ((Maybe UTCTime) → f (Maybe UTCTime))
+  → StreamDescription
+  → f StreamDescription
+sdCreationRequestDateTime i StreamDescription{..} =
+  (\_sdCreationRequestDateTime → StreamDescription{..})
+    <$> i _sdCreationRequestDateTime
+{-# INLINE sdCreationRequestDateTime #-}
+
+-- | A lens for '_sdKeySchema'.
+--
+-- @
+-- 'sdKeySchema' ∷ Lens' 'StreamDescription' ['KeySchemaElement']
+-- @
+--
+sdKeySchema
+  ∷ Functor f
+  ⇒ ([KeySchemaElement] → f [KeySchemaElement])
+  → StreamDescription
+  → f StreamDescription
+sdKeySchema i StreamDescription{..} =
+  (\_sdKeySchema → StreamDescription{..})
+    <$> i _sdKeySchema
+{-# INLINE sdKeySchema #-}
+
+-- | A lens for '_sdLastEvaluatedShardId'.
+--
+-- @
+-- 'sdLastEvaluatedShardId' ∷ Lens' 'StreamDescription' ('Maybe' 'ShardId')
+-- @
+--
+sdLastEvaluatedShardId
+  ∷ Functor f
+  ⇒ ((Maybe ShardId) → f (Maybe ShardId))
+  → StreamDescription
+  → f StreamDescription
+sdLastEvaluatedShardId i StreamDescription{..} =
+  (\_sdLastEvaluatedShardId → StreamDescription{..})
+    <$> i _sdLastEvaluatedShardId
+{-# INLINE sdLastEvaluatedShardId #-}
+
+-- | A lens for '_sdShards'.
+--
+-- @
+-- 'sdShards' ∷ Lens' 'StreamDescription' ['Shard']
+-- @
+--
+sdShards
+  ∷ Functor f
+  ⇒ ([Shard] → f [Shard])
+  → StreamDescription
+  → f StreamDescription
+sdShards i StreamDescription{..} =
+  (\_sdShards → StreamDescription{..})
+    <$> i _sdShards
+{-# INLINE sdShards #-}
+
+-- | A lens for '_sdStreamARN'.
+--
+-- @
+-- 'sdStreamARN' ∷ Lens' 'StreamDescription' ('Maybe' 'T.Text')
+-- @
+--
+sdStreamARN
+  ∷ Functor f
+  ⇒ ((Maybe T.Text) → f (Maybe T.Text))
+  → StreamDescription
+  → f StreamDescription
+sdStreamARN i StreamDescription{..} =
+  (\_sdStreamARN → StreamDescription{..})
+    <$> i _sdStreamARN
+{-# INLINE sdStreamARN #-}
+
+-- | A lens for '_sdStreamId'.
+--
+-- @
+-- 'sdStreamId' ∷ Lens' 'StreamDescription' ('Maybe' 'StreamId')
+-- @
+--
+sdStreamId
+  ∷ Functor f
+  ⇒ ((Maybe StreamId) → f (Maybe StreamId))
+  → StreamDescription
+  → f StreamDescription
+sdStreamId i StreamDescription{..} =
+  (\_sdStreamId → StreamDescription{..})
+    <$> i _sdStreamId
+{-# INLINE sdStreamId #-}
+
+-- | A lens for '_sdStreamStatus'.
+--
+-- @
+-- 'sdStreamStatus' ∷ Lens' 'StreamDescription' ('Maybe' 'StreamStatus')
+-- @
+--
+sdStreamStatus
+  ∷ Functor f
+  ⇒ ((Maybe StreamStatus) → f (Maybe StreamStatus))
+  → StreamDescription
+  → f StreamDescription
+sdStreamStatus i StreamDescription{..} =
+  (\_sdStreamStatus → StreamDescription{..})
+    <$> i _sdStreamStatus
+{-# INLINE sdStreamStatus #-}
+
+-- | A lens for '_sdStreamViewType'.
+--
+-- @
+-- 'sdStreamViewType' ∷ Lens' 'StreamDescription' ('Maybe' 'StreamViewType')
+-- @
+--
+sdStreamViewType
+  ∷ Functor f
+  ⇒ ((Maybe StreamViewType) → f (Maybe StreamViewType))
+  → StreamDescription
+  → f StreamDescription
+sdStreamViewType i StreamDescription{..} =
+  (\_sdStreamViewType → StreamDescription{..})
+    <$> i _sdStreamViewType
+{-# INLINE sdStreamViewType #-}
+
+-- | A lens for '_sdTableName'.
+--
+-- @
+-- 'sdTableName' ∷ Lens' 'StreamDescription' ('Maybe' 'T.Text')
+-- @
+--
+sdTableName
+  ∷ Functor f
+  ⇒ ((Maybe T.Text) → f (Maybe T.Text))
+  → StreamDescription
+  → f StreamDescription
+sdTableName i StreamDescription{..} =
+  (\_sdTableName → StreamDescription{..})
+    <$> i _sdTableName
+{-# INLINE sdTableName #-}
+
