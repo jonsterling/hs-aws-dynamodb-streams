@@ -282,7 +282,7 @@ streamsSignQuery StreamsQuery{..} StreamsConfiguration{..} sigData = SignedQuery
     port = 443
     contentType = Just "application/x-amz-json-1.1"
 
-    amzHeaders = filter ((/= "Authorization") ∘ fst) sig
+    amzHeaders = filter ((≢ "Authorization") ∘ fst) sig
     authorization = return <$> lookup "authorization" sig
     convertCredentials Credentials{..} = SignatureV4Credentials
       { sigV4AccessKeyId = accessKeyID
