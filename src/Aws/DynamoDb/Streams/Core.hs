@@ -509,6 +509,5 @@ errorResponseConsumer resp = do
     kinesisError doc =
       case eitherDecode doc of
         Left e → throwM ∘ StreamsResponseJsonError $ T.pack e
-        Right a → do
-          throwM (a ∷ StreamsErrorResponse)
+        Right a → throwM (a ∷ StreamsErrorResponse)
 
