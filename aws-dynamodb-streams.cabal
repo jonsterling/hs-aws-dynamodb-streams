@@ -4,7 +4,7 @@ version:             0.1.0.0
 -- description:
 license:             Apache-2.0
 license-file:        LICENSE
-author:              Jon Sterling
+author:              Jon Sterling & Lars Kuhtz
 maintainer:          jon@jonmsterling.com
 copyright:           Copyright (c) 2013-2014 PivotCloud, Inc.
 category:            Network
