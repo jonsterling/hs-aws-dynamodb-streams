@@ -63,6 +63,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Data.Monoid.Unicode
 import Data.Profunctor
 import Data.Scientific
 import Data.Typeable
@@ -264,12 +265,12 @@ instance FromJSON AttributeValue where
 
     where
       parseBin =
-        either fail pure
+        either (fail ∘ ("parseBin failed: " ⊕)) pure
           ∘ B64.decode
           ∘ T.encodeUtf8
 
       parseScientific (String str) =
-        either (fail ∘ ("parseScientific failed: " ++)) pure $
+        either (fail ∘ ("parseScientific failed: " ⊕)) pure $
           Atto.parseOnly Atto.scientific str
       parseScientific (Number n) = pure n
       parseScientific _ = fail "Unexpected JSON type in parseScientific"
