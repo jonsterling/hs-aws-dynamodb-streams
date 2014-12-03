@@ -64,6 +64,13 @@ module Aws.DynamoDb.Streams.Types
 , _StreamViewNewImage
 , _StreamViewOldImage
 , _StreamViewNewAndOldImages
+, StreamRecord(..)
+, strKeys
+, strNewImage
+, strOldImage
+, strSequenceNumber
+, strSizeBytes
+, strStreamViewType
 ) where
 
 import Control.Applicative
@@ -736,4 +743,132 @@ _StreamViewNewAndOldImages =
         e → Left e
       fro = either pure (const $ pure StreamViewNewAndOldImages)
 {-# INLINE _StreamViewNewAndOldImages #-}
+
+data StreamRecord
+  = StreamRecord
+  { _strKeys ∷ !(Maybe (M.Map T.Text AttributeValue))
+  , _strNewImage ∷ !(Maybe (M.Map T.Text AttributeValue))
+  , _strOldImage ∷ !(Maybe (M.Map T.Text AttributeValue))
+  , _strSequenceNumber ∷ !(Maybe SequenceNumber)
+  , _strSizeBytes ∷ !(Maybe Integer)
+  , _strStreamViewType ∷ !(Maybe StreamViewType)
+  } deriving (Eq, Ord, Show, Read, Typeable)
+
+instance ToJSON StreamRecord where
+  toJSON StreamRecord{..} = object
+    [ "Keys" .= _strKeys
+    , "NewImage" .= _strNewImage
+    , "OldImage" .= _strOldImage
+    , "SequenceNumber" .= _strSequenceNumber
+    , "SizeBytes" .= _strSizeBytes
+    , "StreamViewType" .= _strStreamViewType
+    ]
+
+instance FromJSON StreamRecord where
+  parseJSON =
+    withObject "StreamRecord" $ \o →
+      pure StreamRecord
+        ⊛ o .: "Keys"
+        ⊛ o .: "NewImage"
+        ⊛ o .: "OldImage"
+        ⊛ o .: "SequenceNumber"
+        ⊛ o .: "SizeBytes"
+        ⊛ o .: "StreamViewType"
+
+-- | A lens for '_strKeys'.
+--
+-- @
+-- 'strKeys' ∷ Lens' 'StreamRecord' ('Maybe' ('M.Map' 'T.Text' 'AttributeValue'))
+-- @
+--
+strKeys
+  ∷ Functor f
+  ⇒ ((Maybe (M.Map T.Text AttributeValue)) → f (Maybe (M.Map T.Text AttributeValue)))
+  → StreamRecord
+  → f StreamRecord
+strKeys i StreamRecord{..} =
+  (\_strKeys → StreamRecord{..})
+    <$> i _strKeys
+{-# INLINE strKeys #-}
+
+-- | A lens for '_strNewImage'.
+--
+-- @
+-- 'strNewImage' ∷ Lens' 'StreamRecord' ('Maybe' ('M.Map' 'T.Text' 'AttributeValue'))
+-- @
+--
+strNewImage
+  ∷ Functor f
+  ⇒ ((Maybe (M.Map T.Text AttributeValue)) → f (Maybe (M.Map T.Text AttributeValue)))
+  → StreamRecord
+  → f StreamRecord
+strNewImage i StreamRecord{..} =
+  (\_strNewImage → StreamRecord{..})
+    <$> i _strNewImage
+{-# INLINE strNewImage #-}
+
+-- | A lens for '_strOldImage'.
+--
+-- @
+-- 'strOldImage' ∷ Lens' 'StreamRecord' ('Maybe' ('M.Map' 'T.Text' 'AttributeValue'))
+-- @
+--
+strOldImage
+  ∷ Functor f
+  ⇒ ((Maybe (M.Map T.Text AttributeValue)) → f (Maybe (M.Map T.Text AttributeValue)))
+  → StreamRecord
+  → f StreamRecord
+strOldImage i StreamRecord{..} =
+  (\_strOldImage → StreamRecord{..})
+    <$> i _strOldImage
+{-# INLINE strOldImage #-}
+
+-- | A lens for '_strSequenceNumber'.
+--
+-- @
+-- 'strSequenceNumber' ∷ Lens' 'StreamRecord' ('Maybe' 'SequenceNumber')
+-- @
+--
+strSequenceNumber
+  ∷ Functor f
+  ⇒ ((Maybe SequenceNumber) → f (Maybe SequenceNumber))
+  → StreamRecord
+  → f StreamRecord
+strSequenceNumber i StreamRecord{..} =
+  (\_strSequenceNumber → StreamRecord{..})
+    <$> i _strSequenceNumber
+{-# INLINE strSequenceNumber #-}
+
+-- | A lens for '_strSizeBytes'.
+--
+-- @
+-- 'strSizeBytes' ∷ Lens' 'StreamRecord' ('Maybe' 'Integer')
+-- @
+--
+strSizeBytes
+  ∷ Functor f
+  ⇒ ((Maybe Integer) → f (Maybe Integer))
+  → StreamRecord
+  → f StreamRecord
+strSizeBytes i StreamRecord{..} =
+  (\_strSizeBytes → StreamRecord{..})
+    <$> i _strSizeBytes
+{-# INLINE strSizeBytes #-}
+
+-- | A lens for '_strStreamViewType'.
+--
+-- @
+-- 'strStreamViewType' ∷ Lens' 'StreamRecord' ('Maybe' 'StreamViewType')
+-- @
+--
+strStreamViewType
+  ∷ Functor f
+  ⇒ ((Maybe StreamViewType) → f (Maybe StreamViewType))
+  → StreamRecord
+  → f StreamRecord
+strStreamViewType i StreamRecord{..} =
+  (\_strStreamViewType → StreamRecord{..})
+    <$> i _strStreamViewType
+{-# INLINE strStreamViewType #-}
+
 
