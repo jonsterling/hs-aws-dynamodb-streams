@@ -40,10 +40,16 @@ module Aws.DynamoDb.Streams.Core
 , StreamsErrorResponse(..)
 , _StreamsResponseJsonError
 , _StreamsErrorResponse
+, _StreamsOtherError
 , StreamsErrorResponseData(..)
 , sterdErrorCode
 , sterdErrorMessage
+, StreamsOtherErrorData(..)
+, stoeStatus
+, stoeMessage
 , jsonResponseConsumer
+, errorResponseConsumer
+, streamsResponseConsumer
 ) where
 
 import Aws.Core
@@ -53,13 +59,15 @@ import Aws.SignatureV4
 import Control.Applicative
 import Control.Applicative.Unicode
 import Control.Exception
+import Control.Monad.Trans
 import qualified Blaze.ByteString.Builder as BB
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as B8
-
+import qualified Data.ByteString.Lazy as LB
 import Data.Aeson
 import Data.Conduit (($$+-))
 import Data.Conduit.Binary (sinkLbs)
+import Data.IORef
 import Data.Maybe
 import Data.Profunctor
 import Data.String
@@ -68,6 +76,7 @@ import Control.Monad.Trans.Resource (throwM)
 import Data.Monoid
 import Data.Monoid.Unicode
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Network.HTTP.Types as HTTP
 import qualified Network.HTTP.Conduit as HTTP
 import Prelude.Unicode
@@ -331,9 +340,46 @@ sterdErrorMessage i StreamsErrorResponseData{..} =
   (\_sterdErrorMessage → StreamsErrorResponseData{..})
     <$> i _sterdErrorMessage
 
+data StreamsOtherErrorData
+  = StreamsOtherErrorData
+  { _stoeStatus ∷ !HTTP.Status
+  , _stoeMessage ∷ !T.Text
+  } deriving (Eq, Show, Typeable)
+
+-- | A lens for '_stoeStatus'
+--
+-- @
+-- 'stoeStatus' ∷ Lens' 'StreamsOtherErrorData' 'HTTP.Status'
+-- @
+--
+stoeStatus
+  ∷ Functor f
+  ⇒ (HTTP.Status → f HTTP.Status)
+  → StreamsOtherErrorData
+  → f StreamsOtherErrorData
+stoeStatus i StreamsOtherErrorData{..} =
+  (\_stoeStatus → StreamsOtherErrorData{..})
+    <$> i _stoeStatus
+
+-- | A lens for '_stoeMessage'
+--
+-- @
+-- 'stoeMessage' ∷ Lens' 'StreamsOtherErrorData' 'T.Text'
+-- @
+--
+stoeMessage
+  ∷ Functor f
+  ⇒ (T.Text → f T.Text)
+  → StreamsOtherErrorData
+  → f StreamsOtherErrorData
+stoeMessage i StreamsOtherErrorData{..} =
+  (\_stoeMessage → StreamsOtherErrorData{..})
+    <$> i _stoeMessage
+
 data StreamsErrorResponse
   = StreamsResponseJsonError T.Text
   | StreamsErrorResponse StreamsErrorResponseData
+  | StreamsOtherError StreamsOtherErrorData
   deriving (Eq, Show, Typeable)
 
 -- | A prism for 'StreamsResponseJsonError'
@@ -374,6 +420,25 @@ _StreamsErrorResponse =
         e → Left e
       fro = either pure (fmap StreamsErrorResponse)
 
+-- | A prism for 'StreamsOtherError'
+--
+-- @
+-- '_StreamsOtherError' ∷ Prism' 'StreamsErrorResponse' 'StreamsOtherErrorData'
+-- @
+_StreamsOtherError
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p StreamsOtherErrorData (f StreamsOtherErrorData)
+  → p StreamsErrorResponse (f StreamsErrorResponse)
+_StreamsOtherError =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        StreamsOtherError e → Right e
+        e → Left e
+      fro = either pure (fmap StreamsOtherError)
+
 instance Exception StreamsErrorResponse
 
 -- | This instance captures only the 'StreamsErrorResponse' constructor
@@ -398,3 +463,40 @@ jsonResponseConsumer res = do
   case eitherDecode (if doc ≡ mempty then "{}" else doc) of
     Left err → throwM ∘ StreamsResponseJsonError $ T.pack err
     Right v → return v
+
+
+streamsResponseConsumer
+  ∷ FromJSON a
+  ⇒ IORef StreamsMetadata
+  → HTTPResponseConsumer a
+streamsResponseConsumer metadata resp = do
+
+  let headerString = fmap T.decodeUtf8 ∘ flip lookup (HTTP.responseHeaders resp)
+      amzId2 = headerString "x-amz-id-2"
+      requestId = headerString "x-amz-request-id"
+
+  liftIO $ tellMetadataRef metadata StreamsMetadata
+    { _smAmzId2 = amzId2
+    , _smRequestId = requestId
+    }
+
+  if HTTP.responseStatus resp ≥ HTTP.status400
+    then errorResponseConsumer resp
+    else jsonResponseConsumer resp
+
+errorResponseConsumer ∷ HTTPResponseConsumer a
+errorResponseConsumer resp = do
+  doc ← HTTP.responseBody resp $$+- sinkLbs
+  if HTTP.responseStatus resp ≡ HTTP.status400
+    then kinesisError doc
+    else throwM $ StreamsOtherError StreamsOtherErrorData
+        { _stoeStatus = HTTP.responseStatus resp
+        , _stoeMessage = T.decodeUtf8 $ LB.toStrict doc
+        }
+  where
+    kinesisError doc =
+      case eitherDecode doc of
+        Left e → throwM ∘ StreamsResponseJsonError $ T.pack e
+        Right a → do
+          throwM (a ∷ StreamsErrorResponse)
+
