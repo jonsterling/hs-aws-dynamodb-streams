@@ -23,6 +23,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
+-- |
+-- Copyright: Copyright (c) 2013-2014 PivotCloud, Inc.
+-- License: Apache-2.0
+--
 module Aws.DynamoDb.Streams.Core
 ( StreamsAction(..)
 , streamsActionToText
