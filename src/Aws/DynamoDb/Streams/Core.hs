@@ -201,7 +201,7 @@ data StreamsConfiguration qt
 stcRegion
   ∷ Functor f
   ⇒ (Region → f Region)
-  → (StreamsConfiguration qt)
+  → StreamsConfiguration qt
   → f (StreamsConfiguration qt)
 stcRegion i StreamsConfiguration{..} =
   StreamsConfiguration <$> i _stcRegion
