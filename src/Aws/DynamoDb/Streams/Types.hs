@@ -50,6 +50,14 @@ module Aws.DynamoDb.Streams.Types
 , _AVNull
 , _AVString
 , _AVStringSet
+  -- * Key Schemas
+, KeyType(..)
+, keyTypeToText
+, _KeyTypeHash
+, _KeyTypeRange
+, KeySchemaElement(..)
+, kseAttributeName
+, kseKeyType
 ) where
 
 import Control.Applicative
@@ -66,6 +74,7 @@ import qualified Data.Text.Encoding as T
 import Data.Monoid.Unicode
 import Data.Profunctor
 import Data.Scientific
+import Data.String
 import Data.Typeable
 import Prelude.Unicode
 
@@ -477,4 +486,125 @@ _AVStringSet =
       fro = either pure (fmap AVStringSet)
 {-# INLINE _AVStringSet #-}
 
+data KeyType
+  = KeyTypeHash
+  | KeyTypeRange
+  deriving (Eq, Ord, Show, Read, Typeable)
 
+keyTypeToText
+  ∷ IsString s
+  ⇒ KeyType
+  → s
+keyTypeToText = \case
+  KeyTypeHash → "HASH"
+  KeyTypeRange → "RANGE"
+
+instance ToJSON KeyType where
+  toJSON = keyTypeToText
+
+instance FromJSON KeyType where
+  parseJSON =
+    withText "KeyType" $ \str →
+      foldr (<|>) empty ∘ fmap (keyTypeParser str) $
+        [ KeyTypeHash
+        , KeyTypeRange
+        ]
+
+    where
+      keyTypeParser str kt =
+        kt <$
+          if (keyTypeToText kt ≡ str)
+            then return kt
+            else empty
+
+-- | A prism for 'KeyTypeHash'.
+--
+-- @
+-- '_KeyTypeHash' ∷ Prism' 'KeyType' '()'
+-- @
+_KeyTypeHash
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p KeyType (f KeyType)
+_KeyTypeHash =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        KeyTypeHash → Right ()
+        e → Left e
+      fro = either pure (const $ pure KeyTypeHash)
+{-# INLINE _KeyTypeHash #-}
+
+-- | A prism for 'KeyTypeRange'.
+--
+-- @
+-- '_KeyTypeRange' ∷ Prism' 'KeyType' '()'
+-- @
+_KeyTypeRange
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p KeyType (f KeyType)
+_KeyTypeRange =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        KeyTypeRange → Right ()
+        e → Left e
+      fro = either pure (const $ pure KeyTypeRange)
+{-# INLINE _KeyTypeRange #-}
+
+
+data KeySchemaElement
+  = KeySchemaElement
+  { _kseAttributeName ∷ !T.Text
+  , _kseKeyType ∷ !KeyType
+  } deriving (Eq, Ord, Show, Read, Typeable)
+
+instance ToJSON KeySchemaElement where
+  toJSON KeySchemaElement{..} = object
+    [ "AttributeName" .= _kseAttributeName
+    , "KeyType" .= _kseKeyType
+    ]
+
+instance FromJSON KeySchemaElement where
+  parseJSON =
+    withObject "KeySchemaElement" $ \o →
+      pure KeySchemaElement
+        ⊛ o .: "AttributeName"
+        ⊛ o .: "KeyType"
+
+-- | A lens for '_kseAttributeName'.
+--
+-- @
+-- 'kseAttributeName' ∷ Lens' 'KeySchemaElement' 'T.Text'
+-- @
+--
+kseAttributeName
+  ∷ Functor f
+  ⇒ (T.Text → f T.Text)
+  → KeySchemaElement
+  → f KeySchemaElement
+kseAttributeName i KeySchemaElement{..} =
+  (\_kseAttributeName → KeySchemaElement{..})
+    <$> i _kseAttributeName
+{-# INLINE kseAttributeName #-}
+
+-- | A lens for '_kseKeyType'.
+--
+-- @
+-- 'kseKeyType' ∷ Lens' 'KeySchemaElement' 'KeyType'
+-- @
+--
+kseKeyType
+  ∷ Functor f
+  ⇒ (KeyType → f KeyType)
+  → KeySchemaElement
+  → f KeySchemaElement
+kseKeyType i KeySchemaElement{..} =
+  (\_kseKeyType → KeySchemaElement{..})
+    <$> i _kseKeyType
+{-# INLINE kseKeyType #-}
