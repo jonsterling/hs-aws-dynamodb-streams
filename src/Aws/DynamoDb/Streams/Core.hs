@@ -304,7 +304,7 @@ data StreamsErrorResponseData
 -- | A lens for '_sterdErrorCode'
 --
 -- @
--- '_sterdErrorCode' ∷ Lens' 'StreamsErrorResponseData' 'T.Text'
+-- 'sterdErrorCode' ∷ Lens' 'StreamsErrorResponseData' 'T.Text'
 -- @
 --
 sterdErrorCode
@@ -319,7 +319,7 @@ sterdErrorCode i StreamsErrorResponseData{..} =
 -- | A lens for '_sterdErrorMessage'
 --
 -- @
--- '_sterdErrorMessage' ∷ Lens' 'StreamsErrorResponseData' 'T.Text'
+-- 'sterdErrorMessage' ∷ Lens' 'StreamsErrorResponseData' 'T.Text'
 -- @
 --
 sterdErrorMessage
