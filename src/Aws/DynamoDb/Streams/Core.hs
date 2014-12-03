@@ -29,8 +29,8 @@ module Aws.DynamoDb.Streams.Core
 , parseStreamsAction
 , streamsServiceEndpoint
 , StreamsMetadata(..)
-, smAmzId2
-, smRequestId
+, stmAmzId2
+, stmRequestId
 , StreamsConfiguration(..)
 , stcRegion
 , StreamsQuery(..)
@@ -133,59 +133,59 @@ streamsServiceEndpoint = \case
 
 data StreamsMetadata
   = StreamsMetadata
-  { _smAmzId2 ∷ !(Maybe T.Text)
-  , _smRequestId ∷ !(Maybe T.Text)
+  { _stmAmzId2 ∷ !(Maybe T.Text)
+  , _stmRequestId ∷ !(Maybe T.Text)
   } deriving (Eq, Show)
 
 instance Loggable StreamsMetadata where
   toLogText StreamsMetadata{..} =
     "DynamoDb Streams: request ID="
-      ⊕ fromMaybe "<none>" _smRequestId
+      ⊕ fromMaybe "<none>" _stmRequestId
       ⊕ ", x-amz-id-2="
-      ⊕ fromMaybe "<none>" _smAmzId2
+      ⊕ fromMaybe "<none>" _stmAmzId2
 
 instance Monoid StreamsMetadata where
   mempty = StreamsMetadata
-    { _smAmzId2 = Nothing
-    , _smRequestId = Nothing
+    { _stmAmzId2 = Nothing
+    , _stmRequestId = Nothing
     }
 
   sm `mappend` sm' = StreamsMetadata
-    { _smAmzId2 = _smAmzId2 sm <|> _smAmzId2 sm'
-    , _smRequestId = _smRequestId sm <|> _smRequestId sm'
+    { _stmAmzId2 = _stmAmzId2 sm <|> _stmAmzId2 sm'
+    , _stmRequestId = _stmRequestId sm <|> _stmRequestId sm'
     }
 
--- | A lens for '_smAmzId2'.
+-- | A lens for '_stmAmzId2'.
 --
 -- @
--- 'smAmzId2' ∷ Lens' 'StreamsMetadata' ('Maybe' 'T.Text')
+-- 'stmAmzId2' ∷ Lens' 'StreamsMetadata' ('Maybe' 'T.Text')
 -- @
 --
-smAmzId2
+stmAmzId2
   ∷ Functor f
   ⇒ (Maybe T.Text → f (Maybe T.Text))
   → StreamsMetadata
   → f StreamsMetadata
-smAmzId2 i StreamsMetadata{..} =
-  (\_smAmzId2 → StreamsMetadata{..})
-    <$> i _smAmzId2
-{-# INLINE smAmzId2 #-}
+stmAmzId2 i StreamsMetadata{..} =
+  (\_stmAmzId2 → StreamsMetadata{..})
+    <$> i _stmAmzId2
+{-# INLINE stmAmzId2 #-}
 
--- | A lens for '_smRequestId'.
+-- | A lens for '_stmRequestId'.
 --
 -- @
--- 'smRequestId' ∷ Lens' 'StreamsMetadata' ('Maybe' 'T.Text')
+-- 'stmRequestId' ∷ Lens' 'StreamsMetadata' ('Maybe' 'T.Text')
 -- @
 --
-smRequestId
+stmRequestId
   ∷ Functor f
   ⇒ (Maybe T.Text → f (Maybe T.Text))
   → StreamsMetadata
   → f StreamsMetadata
-smRequestId i StreamsMetadata{..} =
-  (\_smRequestId → StreamsMetadata{..})
-    <$> i _smRequestId
-{-# INLINE smRequestId #-}
+stmRequestId i StreamsMetadata{..} =
+  (\_stmRequestId → StreamsMetadata{..})
+    <$> i _stmRequestId
+{-# INLINE stmRequestId #-}
 
 data StreamsConfiguration qt
   = StreamsConfiguration
@@ -488,8 +488,8 @@ streamsResponseConsumer metadata resp = do
       requestId = headerString "x-amz-request-id"
 
   liftIO $ tellMetadataRef metadata StreamsMetadata
-    { _smAmzId2 = amzId2
-    , _smRequestId = requestId
+    { _stmAmzId2 = amzId2
+    , _stmRequestId = requestId
     }
 
   if HTTP.responseStatus resp ≥ HTTP.status400
