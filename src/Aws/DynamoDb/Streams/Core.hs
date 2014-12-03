@@ -259,49 +259,49 @@ streamsSignQuery
   → SignatureData
   → SignedQuery
 streamsSignQuery StreamsQuery{..} StreamsConfiguration{..} sigData = SignedQuery
-    { sqMethod = Post
-    , sqProtocol = HTTPS
-    , sqHost = host
-    , sqPort = port
-    , sqPath = BB.toByteString $ HTTP.encodePathSegments path
-    , sqQuery = reqQuery
-    , sqDate = Nothing
-    , sqAuthorization = authorization
-    , sqContentType = contentType
-    , sqContentMd5 = Nothing
-    , sqAmzHeaders = amzHeaders
-    , sqOtherHeaders = [] -- we put everything into amzHeaders
-    , sqBody = HTTP.RequestBodyBS <$> _stqBody
-    , sqStringToSign = mempty
-    }
-  where
-    path = []
-    reqQuery = []
-    host = streamsServiceEndpoint $ _stcRegion
-    headers = [("host", host), streamsTargetHeader _stqAction]
-    port = 443
-    contentType = Just "application/x-amz-json-1.1"
+  { sqMethod = Post
+  , sqProtocol = HTTPS
+  , sqHost = host
+  , sqPort = port
+  , sqPath = BB.toByteString $ HTTP.encodePathSegments path
+  , sqQuery = reqQuery
+  , sqDate = Nothing
+  , sqAuthorization = authorization
+  , sqContentType = contentType
+  , sqContentMd5 = Nothing
+  , sqAmzHeaders = amzHeaders
+  , sqOtherHeaders = [] -- we put everything into amzHeaders
+  , sqBody = HTTP.RequestBodyBS <$> _stqBody
+  , sqStringToSign = mempty
+  }
+    where
+      path = []
+      reqQuery = []
+      host = streamsServiceEndpoint $ _stcRegion
+      headers = [("host", host), streamsTargetHeader _stqAction]
+      port = 443
+      contentType = Just "application/x-amz-json-1.1"
 
-    amzHeaders = filter ((≢ "Authorization") ∘ fst) sig
-    authorization = return <$> lookup "authorization" sig
-    convertCredentials Credentials{..} = SignatureV4Credentials
-      { sigV4AccessKeyId = accessKeyID
-      , sigV4SecretAccessKey = secretAccessKey
-      , sigV4SigningKeys = v4SigningKeys
-      }
+      amzHeaders = filter ((≢ "Authorization") ∘ fst) sig
+      authorization = return <$> lookup "authorization" sig
+      convertCredentials Credentials{..} = SignatureV4Credentials
+        { sigV4AccessKeyId = accessKeyID
+        , sigV4SecretAccessKey = secretAccessKey
+        , sigV4SigningKeys = v4SigningKeys
+        }
 
-    sig =
-      either error id $
-        signPostRequest
-          (convertCredentials $ signatureCredentials sigData)
-          _stcRegion
-          ServiceNamespaceKinesis
-          (signatureTime sigData)
-          "POST"
-          path
-          reqQuery
-          headers
-          (fromMaybe "" _stqBody)
+      sig =
+        either error id $
+          signPostRequest
+            (convertCredentials $ signatureCredentials sigData)
+            _stcRegion
+            ServiceNamespaceKinesis
+            (signatureTime sigData)
+            "POST"
+            path
+            reqQuery
+            headers
+            (fromMaybe "" _stqBody)
 
 
 data StreamsErrorResponseData
