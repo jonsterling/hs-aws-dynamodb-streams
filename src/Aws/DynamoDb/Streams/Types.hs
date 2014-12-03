@@ -58,6 +58,12 @@ module Aws.DynamoDb.Streams.Types
 , KeySchemaElement(..)
 , kseAttributeName
 , kseKeyType
+  -- * Stream Records
+, StreamViewType(..)
+, _StreamViewKeysOnly
+, _StreamViewNewImage
+, _StreamViewOldImage
+, _StreamViewNewAndOldImages
 ) where
 
 import Control.Applicative
@@ -489,7 +495,7 @@ _AVStringSet =
 data KeyType
   = KeyTypeHash
   | KeyTypeRange
-  deriving (Eq, Ord, Show, Read, Typeable)
+  deriving (Eq, Ord, Enum, Show, Read, Typeable)
 
 keyTypeToText
   ∷ IsString s
@@ -505,16 +511,16 @@ instance ToJSON KeyType where
 instance FromJSON KeyType where
   parseJSON =
     withText "KeyType" $ \str →
-      foldr (<|>) empty ∘ fmap (keyTypeParser str) $
+      foldr (<|>) empty ∘ fmap (parser str) $
         [ KeyTypeHash
         , KeyTypeRange
         ]
 
     where
-      keyTypeParser str kt =
+      parser str kt =
         kt <$
           if (keyTypeToText kt ≡ str)
-            then return kt
+            then pure kt
             else empty
 
 -- | A prism for 'KeyTypeHash'.
@@ -608,3 +614,126 @@ kseKeyType i KeySchemaElement{..} =
   (\_kseKeyType → KeySchemaElement{..})
     <$> i _kseKeyType
 {-# INLINE kseKeyType #-}
+
+
+data StreamViewType
+  = StreamViewKeysOnly
+    -- ^ only the key attributes of the modified item
+  | StreamViewNewImage
+    -- ^ the entire item, as it appears after it was modified
+  | StreamViewOldImage
+    -- ^ the entire item, as it appeared before it was modified
+  | StreamViewNewAndOldImages
+    -- ^ both the new and the old images of the item
+  deriving (Eq, Ord, Enum, Show, Read, Typeable)
+
+streamViewTypeToText
+  ∷ IsString s
+  ⇒ StreamViewType
+  → s
+streamViewTypeToText = \case
+  StreamViewKeysOnly → "KEYS_ONLY"
+  StreamViewNewImage → "NEW_IMAGE"
+  StreamViewOldImage → "OLD_IMAGE"
+  StreamViewNewAndOldImages → "NEW_AND_OLD_IMAGES"
+
+instance ToJSON StreamViewType where
+  toJSON = streamViewTypeToText
+
+instance FromJSON StreamViewType where
+  parseJSON =
+    withText "StreamViewType" $ \str →
+      foldr (<|>) empty ∘ fmap (parser str) $
+        [ StreamViewKeysOnly
+        , StreamViewNewImage
+        , StreamViewOldImage
+        , StreamViewNewAndOldImages
+        ]
+
+    where
+      parser str vt =
+        vt <$
+          if (streamViewTypeToText vt ≡ str)
+            then pure vt
+            else empty
+
+-- | A prism for 'StreamViewKeysOnly'.
+--
+-- @
+-- '_StreamViewKeysOnly' ∷ Prism' 'StreamViewType' '()'
+-- @
+_StreamViewKeysOnly
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p StreamViewType (f StreamViewType)
+_StreamViewKeysOnly =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        StreamViewKeysOnly → Right ()
+        e → Left e
+      fro = either pure (const $ pure StreamViewKeysOnly)
+{-# INLINE _StreamViewKeysOnly #-}
+
+-- | A prism for 'StreamViewNewImage'.
+--
+-- @
+-- '_StreamViewNewImage' ∷ Prism' 'StreamViewType' '()'
+-- @
+_StreamViewNewImage
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p StreamViewType (f StreamViewType)
+_StreamViewNewImage =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        StreamViewNewImage → Right ()
+        e → Left e
+      fro = either pure (const $ pure StreamViewNewImage)
+{-# INLINE _StreamViewNewImage #-}
+
+-- | A prism for 'StreamViewOldImage'.
+--
+-- @
+-- '_StreamViewOldImage' ∷ Prism' 'StreamViewType' '()'
+-- @
+_StreamViewOldImage
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p StreamViewType (f StreamViewType)
+_StreamViewOldImage =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        StreamViewOldImage → Right ()
+        e → Left e
+      fro = either pure (const $ pure StreamViewOldImage)
+{-# INLINE _StreamViewOldImage #-}
+
+-- | A prism for 'StreamViewNewAndOldImages'.
+--
+-- @
+-- '_StreamViewNewAndOldImages' ∷ Prism' 'StreamViewType' '()'
+-- @
+_StreamViewNewAndOldImages
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p StreamViewType (f StreamViewType)
+_StreamViewNewAndOldImages =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        StreamViewNewAndOldImages → Right ()
+        e → Left e
+      fro = either pure (const $ pure StreamViewNewAndOldImages)
+{-# INLINE _StreamViewNewAndOldImages #-}
+
