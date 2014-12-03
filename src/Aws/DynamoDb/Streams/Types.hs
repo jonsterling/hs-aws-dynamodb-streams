@@ -198,6 +198,21 @@ data Shard
   -- ^ The range of possible sequence numbers for this shard
   } deriving (Eq, Ord, Typeable, Show, Read)
 
+instance ToJSON Shard where
+  toJSON Shard{..} = object
+    [ "ShardId" .= _shShardId
+    , "ParentShardId" .= _shParentShardId
+    , "SequenceNumberRange" .= _shSequenceNumberRange
+    ]
+
+instance FromJSON Shard where
+  parseJSON =
+    withObject "Shard" $ \o →
+      pure Shard
+        ⊛ o .: "ShardId"
+        ⊛ o .: "ParentShardId"
+        ⊛ o .: "SequenceNumberRange"
+
 -- | A lens for '_shShardId'.
 --
 -- @
