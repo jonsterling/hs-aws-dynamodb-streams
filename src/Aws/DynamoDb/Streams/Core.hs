@@ -282,7 +282,7 @@ streamsSignQuery StreamsQuery{..} StreamsConfiguration{..} sigData = SignedQuery
     where
       path = []
       reqQuery = []
-      host = streamsServiceEndpoint $ _stcRegion
+      host = streamsServiceEndpoint _stcRegion
       headers = [("host", host), streamsTargetHeader _stqAction]
       port = 443
       contentType = Just "application/x-amz-json-1.1"
