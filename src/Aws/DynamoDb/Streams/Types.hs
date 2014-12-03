@@ -71,7 +71,13 @@ module Aws.DynamoDb.Streams.Types
 , strSequenceNumber
 , strSizeBytes
 , strStreamViewType
+  -- * Stream Description
 , StreamId
+, StreamStatus(..)
+, _StatusEnabling
+, _StatusEnabled
+, _StatusDisabling
+, _StatusDisabled
 ) where
 
 import Control.Applicative
@@ -890,3 +896,123 @@ instance FromJSON StreamId where
     withText "StreamId" $
       pure ∘ StreamId
 
+data StreamStatus
+  = StatusEnabling
+    -- ^ DynamoDB Streams is currently being enabled on the table
+  | StatusEnabled
+    -- ^ The stream is enabled
+  | StatusDisabling
+    -- ^ DynamoDB Streams is currently being disabled on the table
+  | StatusDisabled
+    -- ^ The stream is disabled
+  deriving (Eq, Ord, Enum, Show, Read, Typeable)
+
+streamStatusToText
+  ∷ IsString a
+  ⇒ StreamStatus
+  → a
+streamStatusToText = \case
+  StatusEnabling → "ENABLING"
+  StatusEnabled → "ENABLED"
+  StatusDisabling → "DISABLING"
+  StatusDisabled → "DISABLED"
+
+instance ToJSON StreamStatus where
+  toJSON = streamStatusToText
+
+instance FromJSON StreamStatus where
+  parseJSON =
+    withText "StreamStatus" $ \str →
+      foldr (<|>) empty ∘ fmap (parser str) $
+        [ StatusEnabling
+        , StatusEnabled
+        , StatusDisabling
+        , StatusDisabled
+        ]
+
+    where
+      parser str ss =
+        ss <$
+          if (streamStatusToText ss ≡ str)
+            then pure ss
+            else empty
+
+-- | A prism for 'StatusEnabling'.
+--
+-- @
+-- '_StatusEnabling' ∷ Prism' 'StreamStatus' '()'
+-- @
+_StatusEnabling
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p StreamStatus (f StreamStatus)
+_StatusEnabling =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        StatusEnabling → Right ()
+        e → Left e
+      fro = either pure (const $ pure StatusEnabling)
+{-# INLINE _StatusEnabling #-}
+
+-- | A prism for 'StatusEnabled'.
+--
+-- @
+-- '_StatusEnabled' ∷ Prism' 'StreamStatus' '()'
+-- @
+_StatusEnabled
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p StreamStatus (f StreamStatus)
+_StatusEnabled =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        StatusEnabled → Right ()
+        e → Left e
+      fro = either pure (const $ pure StatusEnabled)
+{-# INLINE _StatusEnabled #-}
+
+-- | A prism for 'StatusDisabling'.
+--
+-- @
+-- '_StatusDisabling' ∷ Prism' 'StreamStatus' '()'
+-- @
+_StatusDisabling
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p StreamStatus (f StreamStatus)
+_StatusDisabling =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        StatusDisabling → Right ()
+        e → Left e
+      fro = either pure (const $ pure StatusDisabling)
+{-# INLINE _StatusDisabling #-}
+
+-- | A prism for 'StatusDisabled'.
+--
+-- @
+-- '_StatusDisabled' ∷ Prism' 'StreamStatus' '()'
+-- @
+_StatusDisabled
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p StreamStatus (f StreamStatus)
+_StatusDisabled =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        StatusDisabled → Right ()
+        e → Left e
+      fro = either pure (const $ pure StatusDisabled)
+{-# INLINE _StatusDisabled #-}
