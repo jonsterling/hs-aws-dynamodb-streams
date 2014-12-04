@@ -92,10 +92,10 @@ streamsTargetVersion ∷ IsString a ⇒ a
 streamsTargetVersion = "DynamoDBStreams_20120810"
 
 data StreamsAction
-  = DescribeStream
-  | GetRecords
-  | GetShardIterator
-  | ListStreams
+  = ActionDescribeStream
+  | ActionGetRecords
+  | ActionGetShardIterator
+  | ActionListStreams
   deriving (Eq, Ord, Enum, Bounded, Typeable, Read, Show)
 
 -- | Render a 'StreamsAction' as a string for use in an AWS request.
@@ -105,10 +105,10 @@ streamsActionToText
   ⇒ StreamsAction
   → s
 streamsActionToText = \case
-  DescribeStream → "DescribeStream"
-  GetRecords → "GetRecords"
-  GetShardIterator → "GetShardIterator"
-  ListStreams → "ListStreams"
+  ActionDescribeStream → "DescribeStream"
+  ActionGetRecords → "GetRecords"
+  ActionGetShardIterator → "GetShardIterator"
+  ActionListStreams → "ListStreams"
 
 -- | Parse a 'StreamsAction'; this is the inverse of 'streamsActionToText'.
 --
@@ -121,10 +121,10 @@ parseStreamsAction = P.choice parsers <?> "StreamsAction"
       a <$ P.text (streamsActionToText a)
 
     parsers = actionToParser <$>
-      [ DescribeStream
-      , GetRecords
-      , GetShardIterator
-      , ListStreams
+      [ ActionDescribeStream
+      , ActionGetRecords
+      , ActionGetShardIterator
+      , ActionListStreams
       ]
 
 instance AwsType StreamsAction where
