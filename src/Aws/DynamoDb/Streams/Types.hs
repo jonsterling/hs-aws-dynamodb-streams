@@ -254,7 +254,7 @@ data Shard
   { _shShardId ∷ !(Maybe ShardId)
     -- ^ The system-generated identifier for this shard
   , _shParentShardId ∷ !(Maybe ShardId)
-    -- ^ The shard id of this shard's parent
+    -- ^ The shard ID of this shard's parent
   , _shSequenceNumberRange ∷ !(Maybe SequenceNumberRange)
   -- ^ The range of possible sequence numbers for this shard
   } deriving (Eq, Ord, Typeable, Show, Read)

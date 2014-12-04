@@ -60,7 +60,7 @@ import qualified Data.Text as T
 data ListStreams
   = ListStreams
   { _lstExclusiveStartStreamId ∷ !(Maybe StreamId)
-    -- ^ The stream id of the first item that this operation will evaluate;
+    -- ^ The stream ID of the first item that this operation will evaluate;
     -- also see '_lstrLastEvalutedStreamId'.
 
   , _lstLimit ∷ !(Maybe Int)
@@ -163,7 +163,7 @@ data ListStreamsResponse
     -- retrieved.
 
   , _lstrStreamIds ∷ ![StreamId]
-    -- ^ A list of stream ids associated with the current account and endpoint.
+    -- ^ A list of stream IDs associated with the current account and endpoint.
   } deriving (Eq, Ord, Read, Show, Typeable)
 
 instance ToJSON ListStreamsResponse where
