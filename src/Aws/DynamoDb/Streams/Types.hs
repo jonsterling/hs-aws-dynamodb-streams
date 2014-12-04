@@ -32,14 +32,18 @@ module Aws.DynamoDb.Streams.Types
 , SequenceNumberRange(..)
 , sqnrStartingSequenceNumber
 , sqnrEndingSequenceNumber
+
   -- * Shards
 , ShardId
 , Shard(..)
+  -- ** Lenses
 , shShardId
 , shParentShardId
 , shSequenceNumberRange
-  -- * Attribute values
+
+  -- * Attribute Values
 , AttributeValue(..)
+  -- ** Prisms
 , _AVBin
 , _AVBool
 , _AVBinSet
@@ -50,35 +54,75 @@ module Aws.DynamoDb.Streams.Types
 , _AVNull
 , _AVString
 , _AVStringSet
+
   -- * Key Schemas
+  -- ** Key Types
 , KeyType(..)
 , keyTypeToText
+  -- *** Prisms
 , _KeyTypeHash
 , _KeyTypeRange
+  -- ** Key Schema Elements
 , KeySchemaElement(..)
+  -- *** Lenses
 , kseAttributeName
 , kseKeyType
-  -- * Stream Records
+
+  -- * Records
+  -- ** Stream View Types
 , StreamViewType(..)
+
+  -- *** Prisms
 , _StreamViewKeysOnly
 , _StreamViewNewImage
 , _StreamViewOldImage
 , _StreamViewNewAndOldImages
+
+  -- ** Stream Records
 , StreamRecord(..)
+
+  -- *** Lenses
 , strKeys
 , strNewImage
 , strOldImage
 , strSequenceNumber
 , strSizeBytes
 , strStreamViewType
-  -- * Stream Description
-, StreamId
+
+  -- ** Event Names
+, EventName(..)
+
+  -- *** Prisms
+, _EventInsert
+, _EventModify
+, _EventRemove
+
+  -- ** Records
+, Record(..)
+
+  -- *** Lenses
+, rAwsRegion
+, rStreamRecord
+, rEventId
+, rEventName
+, rEventSource
+, rEventVersion
+
+
+  -- * Stream Metadata
+  -- ** Stream Statuses
 , StreamStatus(..)
+
+  --- *** Prisms
 , _StatusEnabling
 , _StatusEnabled
 , _StatusDisabling
 , _StatusDisabled
+
+  -- ** Stream Description
+, StreamId
 , StreamDescription(..)
+  -- *** Lenses
 , sdCreationRequestDateTime
 , sdKeySchema
 , sdLastEvaluatedShardId
@@ -91,10 +135,12 @@ module Aws.DynamoDb.Streams.Types
 ) where
 
 import Aws.Core
+import Aws.General
 import Control.Applicative
 import Control.Applicative.Unicode
 import Control.Monad.Unicode
 import Data.Aeson
+import Data.Aeson.Types
 import qualified Data.Attoparsec.Text as Atto
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Base64 as B64
@@ -107,6 +153,7 @@ import Data.Profunctor
 import Data.Scientific
 import Data.String
 import Data.Time
+import Data.Traversable hiding (mapM)
 import Data.Typeable
 import Prelude.Unicode
 import System.Locale
@@ -552,23 +599,32 @@ instance ToJSON KeyType where
 
 instance FromJSON KeyType where
   parseJSON =
-    withText "KeyType" $ \str →
-      foldr (<|>) empty ∘ fmap (parser str) $
-        [ KeyTypeHash
-        , KeyTypeRange
-        ]
+    parseEnum "KeyType" keyTypeToText
+      [ KeyTypeHash
+      , KeyTypeRange
+      ]
 
-    where
-      parser str kt =
-        kt <$
-          if (keyTypeToText kt ≡ str)
-            then pure kt
-            else empty
+parseEnum
+  ∷ String
+  → (α → T.Text)
+  → [α]
+  → Value
+  → Parser α
+parseEnum name render opts =
+  withText name $ \str →
+    foldr (<|>) empty $
+      parser str <$> opts
+
+  where
+    parser str o =
+      o <$ if (render o ≡ str)
+        then pure o
+        else empty
 
 -- | A prism for 'KeyTypeHash'.
 --
 -- @
--- '_KeyTypeHash' ∷ Prism' 'KeyType' '()'
+-- '_KeyTypeHash' ∷ Prism' 'KeyType' ()
 -- @
 _KeyTypeHash
   ∷ ( Choice p
@@ -588,7 +644,7 @@ _KeyTypeHash =
 -- | A prism for 'KeyTypeRange'.
 --
 -- @
--- '_KeyTypeRange' ∷ Prism' 'KeyType' '()'
+-- '_KeyTypeRange' ∷ Prism' 'KeyType' ()
 -- @
 _KeyTypeRange
   ∷ ( Choice p
@@ -684,25 +740,17 @@ instance ToJSON StreamViewType where
 
 instance FromJSON StreamViewType where
   parseJSON =
-    withText "StreamViewType" $ \str →
-      foldr (<|>) empty ∘ fmap (parser str) $
-        [ StreamViewKeysOnly
-        , StreamViewNewImage
-        , StreamViewOldImage
-        , StreamViewNewAndOldImages
-        ]
-
-    where
-      parser str vt =
-        vt <$
-          if (streamViewTypeToText vt ≡ str)
-            then pure vt
-            else empty
+    parseEnum "StreamViewType" streamViewTypeToText
+      [ StreamViewKeysOnly
+      , StreamViewNewImage
+      , StreamViewOldImage
+      , StreamViewNewAndOldImages
+      ]
 
 -- | A prism for 'StreamViewKeysOnly'.
 --
 -- @
--- '_StreamViewKeysOnly' ∷ Prism' 'StreamViewType' '()'
+-- '_StreamViewKeysOnly' ∷ Prism' 'StreamViewType' ()
 -- @
 _StreamViewKeysOnly
   ∷ ( Choice p
@@ -722,7 +770,7 @@ _StreamViewKeysOnly =
 -- | A prism for 'StreamViewNewImage'.
 --
 -- @
--- '_StreamViewNewImage' ∷ Prism' 'StreamViewType' '()'
+-- '_StreamViewNewImage' ∷ Prism' 'StreamViewType' ()
 -- @
 _StreamViewNewImage
   ∷ ( Choice p
@@ -742,7 +790,7 @@ _StreamViewNewImage =
 -- | A prism for 'StreamViewOldImage'.
 --
 -- @
--- '_StreamViewOldImage' ∷ Prism' 'StreamViewType' '()'
+-- '_StreamViewOldImage' ∷ Prism' 'StreamViewType' ()
 -- @
 _StreamViewOldImage
   ∷ ( Choice p
@@ -762,7 +810,7 @@ _StreamViewOldImage =
 -- | A prism for 'StreamViewNewAndOldImages'.
 --
 -- @
--- '_StreamViewNewAndOldImages' ∷ Prism' 'StreamViewType' '()'
+-- '_StreamViewNewAndOldImages' ∷ Prism' 'StreamViewType' ()
 -- @
 _StreamViewNewAndOldImages
   ∷ ( Choice p
@@ -950,25 +998,17 @@ instance ToJSON StreamStatus where
 
 instance FromJSON StreamStatus where
   parseJSON =
-    withText "StreamStatus" $ \str →
-      foldr (<|>) empty ∘ fmap (parser str) $
-        [ StatusEnabling
-        , StatusEnabled
-        , StatusDisabling
-        , StatusDisabled
-        ]
-
-    where
-      parser str ss =
-        ss <$
-          if (streamStatusToText ss ≡ str)
-            then pure ss
-            else empty
+    parseEnum "StreamStatus" streamStatusToText
+      [ StatusEnabling
+      , StatusEnabled
+      , StatusDisabling
+      , StatusDisabled
+      ]
 
 -- | A prism for 'StatusEnabling'.
 --
 -- @
--- '_StatusEnabling' ∷ Prism' 'StreamStatus' '()'
+-- '_StatusEnabling' ∷ Prism' 'StreamStatus' ()
 -- @
 _StatusEnabling
   ∷ ( Choice p
@@ -988,7 +1028,7 @@ _StatusEnabling =
 -- | A prism for 'StatusEnabled'.
 --
 -- @
--- '_StatusEnabled' ∷ Prism' 'StreamStatus' '()'
+-- '_StatusEnabled' ∷ Prism' 'StreamStatus' ()
 -- @
 _StatusEnabled
   ∷ ( Choice p
@@ -1008,7 +1048,7 @@ _StatusEnabled =
 -- | A prism for 'StatusDisabling'.
 --
 -- @
--- '_StatusDisabling' ∷ Prism' 'StreamStatus' '()'
+-- '_StatusDisabling' ∷ Prism' 'StreamStatus' ()
 -- @
 _StatusDisabling
   ∷ ( Choice p
@@ -1028,7 +1068,7 @@ _StatusDisabling =
 -- | A prism for 'StatusDisabled'.
 --
 -- @
--- '_StatusDisabled' ∷ Prism' 'StreamStatus' '()'
+-- '_StatusDisabled' ∷ Prism' 'StreamStatus' ()
 -- @
 _StatusDisabled
   ∷ ( Choice p
@@ -1235,4 +1275,235 @@ sdTableName i StreamDescription{..} =
   (\_sdTableName → StreamDescription{..})
     <$> i _sdTableName
 {-# INLINE sdTableName #-}
+
+
+-- | A globally unique identifier for the event that was recorded.
+--
+newtype EventId
+  = EventId
+  { _eidText ∷ T.Text
+  } deriving (Eq, Ord, Typeable, Show, Read)
+
+instance ToJSON EventId where
+  toJSON = toJSON ∘ _eidText
+
+instance FromJSON EventId where
+  parseJSON =
+    withText "EventId" $
+      pure ∘ EventId
+
+data EventName
+  = EventInsert
+  | EventModify
+  | EventRemove
+  deriving (Eq, Ord, Enum, Typeable, Show, Read)
+
+eventNameToText
+  ∷ IsString s
+  ⇒ EventName
+  → s
+eventNameToText = \case
+  EventInsert → "INSERT"
+  EventModify → "MODIFY"
+  EventRemove → "REMOVE"
+
+instance ToJSON EventName where
+  toJSON = eventNameToText
+
+instance FromJSON EventName where
+  parseJSON =
+    parseEnum "EventName" eventNameToText
+      [ EventInsert
+      , EventModify
+      , EventRemove
+      ]
+
+-- | A prism for 'EventInsert'.
+--
+-- @
+-- '_EventInsert' ∷ Prism' 'EventName' ()
+-- @
+_EventInsert
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p EventName (f EventName)
+_EventInsert =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        EventInsert → Right ()
+        e → Left e
+      fro = either pure (const $ pure EventInsert)
+{-# INLINE _EventInsert #-}
+
+-- | A prism for 'EventModify'.
+--
+-- @
+-- '_EventModify' ∷ Prism' 'EventName' ()
+-- @
+_EventModify
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p EventName (f EventName)
+_EventModify =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        EventModify → Right ()
+        e → Left e
+      fro = either pure (const $ pure EventModify)
+{-# INLINE _EventModify #-}
+
+-- | A prism for 'EventRemove'.
+--
+-- @
+-- '_EventRemove' ∷ Prism' 'EventName' ()
+-- @
+_EventRemove
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p EventName (f EventName)
+_EventRemove =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        EventRemove → Right ()
+        e → Left e
+      fro = either pure (const $ pure EventRemove)
+{-# INLINE _EventRemove #-}
+
+
+data Record
+  = Record
+  { _rAwsRegion ∷ !(Maybe Region)
+  , _rStreamRecord ∷ !(Maybe StreamRecord)
+  , _rEventId ∷ !(Maybe EventId)
+  , _rEventName ∷ !(Maybe EventName)
+  , _rEventSource ∷ !(Maybe T.Text)
+  , _rEventVersion ∷ !(Maybe T.Text)
+  } deriving (Eq, Ord, Show, Read, Typeable)
+
+instance ToJSON Record where
+  toJSON Record{..} = object
+    [ "awsRegion" .= (String ∘ regionToText <$> _rAwsRegion)
+    , "dynamodb" .= _rStreamRecord
+    , "eventID" .= _rEventId
+    , "eventName" .= _rEventName
+    , "eventSource" .= _rEventSource
+    , "eventVersion" .= _rEventVersion
+    ]
+
+instance FromJSON Record where
+  parseJSON =
+    withObject "Record" $ \o →
+      pure Record
+        ⊛ (traverse (either fail pure ∘ fromText) =≪ o .: "awsRegion")
+        ⊛ o .: "dynamodb"
+        ⊛ o .: "eventID"
+        ⊛ o .: "eventName"
+        ⊛ o .: "eventSource"
+        ⊛ o .: "eventVersion"
+
+-- | A lens for '_rAwsRegion'.
+--
+-- @
+-- 'rAwsRegion' ∷ Lens' 'Record' ('Maybe' 'Region')
+-- @
+--
+rAwsRegion
+  ∷ Functor f
+  ⇒ ((Maybe Region) → f (Maybe Region))
+  → Record
+  → f Record
+rAwsRegion i Record{..} =
+  (\_rAwsRegion → Record{..})
+    <$> i _rAwsRegion
+{-# INLINE rAwsRegion #-}
+
+-- | A lens for '_rStreamRecord'.
+--
+-- @
+-- 'rStreamRecord' ∷ Lens' 'Record' ('Maybe' 'StreamRecord')
+-- @
+--
+rStreamRecord
+  ∷ Functor f
+  ⇒ ((Maybe StreamRecord) → f (Maybe StreamRecord))
+  → Record
+  → f Record
+rStreamRecord i Record{..} =
+  (\_rStreamRecord → Record{..})
+    <$> i _rStreamRecord
+{-# INLINE rStreamRecord #-}
+
+-- | A lens for '_rEventId'.
+--
+-- @
+-- 'rEventId' ∷ Lens' 'Record' ('Maybe' 'EventId')
+-- @
+--
+rEventId
+  ∷ Functor f
+  ⇒ ((Maybe EventId) → f (Maybe EventId))
+  → Record
+  → f Record
+rEventId i Record{..} =
+  (\_rEventId → Record{..})
+    <$> i _rEventId
+{-# INLINE rEventId #-}
+
+-- | A lens for '_rEventName'.
+--
+-- @
+-- 'rEventName' ∷ Lens' 'Record' ('Maybe' 'EventName')
+-- @
+--
+rEventName
+  ∷ Functor f
+  ⇒ ((Maybe EventName) → f (Maybe EventName))
+  → Record
+  → f Record
+rEventName i Record{..} =
+  (\_rEventName → Record{..})
+    <$> i _rEventName
+{-# INLINE rEventName #-}
+
+-- | A lens for '_rEventSource'.
+--
+-- @
+-- 'rEventSource' ∷ Lens' 'Record' ('Maybe' 'T.Text')
+-- @
+--
+rEventSource
+  ∷ Functor f
+  ⇒ ((Maybe T.Text) → f (Maybe T.Text))
+  → Record
+  → f Record
+rEventSource i Record{..} =
+  (\_rEventSource → Record{..})
+    <$> i _rEventSource
+{-# INLINE rEventSource #-}
+
+-- | A lens for '_rEventVersion'.
+--
+-- @
+-- 'rEventVersion' ∷ Lens' 'Record' ('Maybe' 'T.Text')
+-- @
+--
+rEventVersion
+  ∷ Functor f
+  ⇒ ((Maybe T.Text) → f (Maybe T.Text))
+  → Record
+  → f Record
+rEventVersion i Record{..} =
+  (\_rEventVersion → Record{..})
+    <$> i _rEventVersion
+{-# INLINE rEventVersion #-}
+
 
