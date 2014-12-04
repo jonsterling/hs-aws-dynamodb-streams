@@ -42,6 +42,9 @@ module Aws.DynamoDb.Streams.Core
 , stqAction
 , stqBody
 , streamsSignQuery
+, StreamsResponseJsonErrorData(..)
+, srjedMessage
+, srjedJSON
 , StreamsErrorResponse(..)
 , _StreamsResponseJsonError
 , _StreamsErrorResponse
@@ -422,8 +425,42 @@ stoeMessage i StreamsOtherErrorData{..} =
     <$> i _stoeMessage
 {-# INLINE stoeMessage #-}
 
+data StreamsResponseJsonErrorData
+  = StreamsResponseJsonErrorData
+  { _srjedMessage ∷ !T.Text
+  , _srjedJSON ∷ !LB.ByteString
+  } deriving (Eq, Show, Typeable)
+
+-- | A lens for '_srjedMessage'.
+--
+-- @
+-- 'srjedMessage' ∷ Lens' 'StreamsResponseJsonErrorData' 'T.Text'
+-- @
+srjedMessage
+  ∷ Functor f
+  ⇒ (T.Text → f T.Text)
+  → StreamsResponseJsonErrorData
+  → f StreamsResponseJsonErrorData
+srjedMessage i StreamsResponseJsonErrorData{..} =
+  (\_srjedMessage → StreamsResponseJsonErrorData{..})
+    <$> i _srjedMessage
+
+-- | A lens for '_srjedJSON'.
+--
+-- @
+-- 'srjedJSON' ∷ Lens' 'StreamsResponseJsonErrorData' 'LB.ByteString'
+-- @
+srjedJSON
+  ∷ Functor f
+  ⇒ (LB.ByteString → f LB.ByteString)
+  → StreamsResponseJsonErrorData
+  → f StreamsResponseJsonErrorData
+srjedJSON i StreamsResponseJsonErrorData{..} =
+  (\_srjedJSON → StreamsResponseJsonErrorData{..})
+    <$> i _srjedJSON
+
 data StreamsErrorResponse
-  = StreamsResponseJsonError T.Text
+  = StreamsResponseJsonError StreamsResponseJsonErrorData
   | StreamsErrorResponse StreamsErrorResponseData
   | StreamsOtherError StreamsOtherErrorData
   deriving (Eq, Show, Typeable)
@@ -431,13 +468,13 @@ data StreamsErrorResponse
 -- | A prism for 'StreamsResponseJsonError'.
 --
 -- @
--- '_StreamsResponseJsonError' ∷ Prism' 'StreamsErrorResponse' 'T.Text'
+-- '_StreamsResponseJsonError' ∷ Prism' 'StreamsErrorResponse' 'StreamsResponseJsonErrorData'
 -- @
 _StreamsResponseJsonError
   ∷ ( Choice p
     , Applicative f
     )
-  ⇒ p T.Text (f T.Text)
+  ⇒ p StreamsResponseJsonErrorData (f StreamsResponseJsonErrorData)
   → p StreamsErrorResponse (f StreamsErrorResponse)
 _StreamsResponseJsonError =
   dimap to fro ∘ right'
@@ -510,7 +547,10 @@ jsonResponseConsumer
 jsonResponseConsumer res = do
   doc ← HTTP.responseBody res $$+- sinkLbs
   case eitherDecode (if doc ≡ mempty then "{}" else doc) of
-    Left err → throwM ∘ StreamsResponseJsonError $ T.pack err
+    Left e → throwM $ StreamsResponseJsonError StreamsResponseJsonErrorData
+      { _srjedMessage = T.pack e
+      , _srjedJSON = doc
+      }
     Right v → return v
 
 
@@ -545,6 +585,9 @@ errorResponseConsumer resp = do
   where
     kinesisError doc =
       case eitherDecode doc of
-        Left e → throwM ∘ StreamsResponseJsonError $ T.pack e
+        Left e → throwM $ StreamsResponseJsonError StreamsResponseJsonErrorData
+          { _srjedMessage = T.pack e
+          , _srjedJSON = doc
+          }
         Right a → throwM (a ∷ StreamsErrorResponse)
 
