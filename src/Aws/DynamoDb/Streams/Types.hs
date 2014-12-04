@@ -1114,14 +1114,14 @@ instance FromJSON StreamDescription where
     withObject "StreamDescription" $ \o →
       pure StreamDescription
         ⊛ (fmap (posixSecondsToUTCTime ∘ fromInteger) <$> o .:? "CreationRequestDateTime")
-        ⊛ pure [] -- o .:? "KeySchema" .!= []
-        ⊛ pure Nothing -- o .:? "LastEvaluatedShardId"
+        ⊛ o .:? "KeySchema" .!= []
+        ⊛ o .:? "LastEvaluatedShardId"
         ⊛ o .:? "Shards" .!= []
-        ⊛ pure Nothing -- o .:? "StreamARN"
-        ⊛ pure Nothing -- o .:? "StreamId"
-        ⊛ pure Nothing -- o .:? "StreamStatus"
-        ⊛ pure Nothing -- o .:? "StreamViewType"
-        ⊛ pure Nothing -- o .:? "TableName"
+        ⊛ o .:? "StreamARN"
+        ⊛ o .:? "StreamId"
+        ⊛ o .:? "StreamStatus"
+        ⊛ o .:? "StreamViewType"
+        ⊛ o .:? "TableName"
 
 -- | A lens for '_sdCreationRequestDateTime'.
 --
