@@ -58,20 +58,24 @@ module Aws.DynamoDb.Streams.Core
 
 import Aws.Core
 import Aws.General
-import Aws.SignatureV4
 
 import Control.Applicative
 import Control.Applicative.Unicode
 import Control.Exception
 import Control.Monad.Trans
-import qualified Blaze.ByteString.Builder as BB
+import Crypto.Hash
+import Data.Byteable
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Base16 as B16
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as LB
 import Data.Aeson
+import qualified Data.CaseInsensitive as CI
 import Data.Conduit (($$+-))
 import Data.Conduit.Binary (sinkLbs)
+import Data.Function (on)
 import Data.IORef
+import Data.List
 import Data.Maybe
 import Data.Profunctor
 import Data.String
@@ -137,8 +141,8 @@ streamsServiceEndpoint
   ∷ Region
   → B8.ByteString
 streamsServiceEndpoint = \case
-  UsEast1 → "http://mkto-sj010128.com/HK0030i0yIn6mAa03gV00SK"
-  EuWest1 → "http://mkto-sj010128.com/SV0A3K0630a0yKI0g00mioT"
+  UsEast1 → "streams.preview-dynamodb.us-east-1.amazonaws.com"
+  EuWest1 → "streams.preview-dynamodb.eu-west-1.amazonaws.com"
   region → error $ "Unsupported region: " ⊕ show region
 
 data StreamsMetadata
@@ -214,13 +218,14 @@ stcRegion
   → StreamsConfiguration qt
   → f (StreamsConfiguration qt)
 stcRegion i StreamsConfiguration{..} =
-  StreamsConfiguration <$> i _stcRegion
+  (\_stcRegion → StreamsConfiguration{..})
+    <$> i _stcRegion
 {-# INLINE stcRegion #-}
 
 data StreamsQuery
   = StreamsQuery
   { _stqAction ∷ !StreamsAction
-  , _stqBody ∷ !(Maybe B.ByteString)
+  , _stqBody ∷ !LB.ByteString
   } deriving (Eq, Show)
 
 -- | A lens for '_stqAction'.
@@ -242,12 +247,12 @@ stqAction i StreamsQuery{..} =
 -- | A lens for '_stqBody'.
 --
 -- @
--- 'stqBody' ∷ Lens' 'StreamsQuery' ('Maybe' 'B.ByteString')
+-- 'stqBody' ∷ Lens' 'StreamsQuery' 'LB.ByteString'
 -- @
 --
 stqBody
   ∷ Functor f
-  ⇒ (Maybe B.ByteString → f (Maybe B.ByteString))
+  ⇒ (LB.ByteString → f LB.ByteString)
   → StreamsQuery
   → f StreamsQuery
 stqBody i StreamsQuery{..} =
@@ -275,48 +280,59 @@ streamsSignQuery
   → SignedQuery
 streamsSignQuery StreamsQuery{..} StreamsConfiguration{..} sigData = SignedQuery
   { sqMethod = Post
-  , sqProtocol = HTTPS
+  , sqProtocol = HTTP
   , sqHost = host
-  , sqPort = port
-  , sqPath = BB.toByteString $ HTTP.encodePathSegments path
-  , sqQuery = reqQuery
-  , sqDate = Nothing
-  , sqAuthorization = authorization
-  , sqContentType = contentType
+  , sqPort = 80
+  , sqPath = "/"
+  , sqQuery = []
+  , sqDate = Just $ signatureTime sigData
+  , sqAuthorization = Just auth
+  , sqContentType = Just "application/x-amz-json-1.0"
   , sqContentMd5 = Nothing
-  , sqAmzHeaders = amzHeaders
-  , sqOtherHeaders = [] -- we put everything into amzHeaders
-  , sqBody = HTTP.RequestBodyBS <$> _stqBody
-  , sqStringToSign = mempty
+  , sqAmzHeaders = amzHeaders ++ maybe [] (\tok -> [("x-amz-security-token",tok)]) (iamToken credentials)
+  , sqOtherHeaders = []
+  , sqBody = Just $ HTTP.RequestBodyLBS _stqBody
+  , sqStringToSign = canonicalRequest
   }
     where
-      path = []
-      reqQuery = []
+      credentials = signatureCredentials sigData
       host = streamsServiceEndpoint _stcRegion
-      headers = [("host", host), streamsTargetHeader _stqAction]
-      port = 443
-      contentType = Just "application/x-amz-json-1.1"
+      sigTime = fmtTime "%Y%m%dT%H%M%SZ" $ signatureTime sigData
 
-      amzHeaders = filter ((≢ "Authorization") ∘ fst) sig
-      authorization = return <$> lookup "authorization" sig
-      convertCredentials Credentials{..} = SignatureV4Credentials
-        { sigV4AccessKeyId = accessKeyID
-        , sigV4SecretAccessKey = secretAccessKey
-        , sigV4SigningKeys = v4SigningKeys
-        }
+      -- for some reason AWS doesn't want the x-amz-security-token in the canonical request
+      amzHeaders =
+        [ ("x-amz-date", sigTime)
+        , streamsTargetHeader _stqAction
+        ]
 
-      sig =
-        either error id $
-          signPostRequest
-            (convertCredentials $ signatureCredentials sigData)
-            _stcRegion
-            ServiceNamespaceKinesis
-            (signatureTime sigData)
-            "POST"
-            path
-            reqQuery
-            headers
-            (fromMaybe "" _stqBody)
+      canonicalHeaders =
+        sortBy (compare `on` fst) $
+          amzHeaders ++
+            [ ("host", host)
+            , ("content-type", "application/x-amz-json-1.0")
+            ]
+
+      canonicalRequest =
+        let bodyHash = B16.encode $ toBytes (hashlazy _stqBody :: Digest SHA256)
+        in B.concat ∘ intercalate ["\n"] $
+          [ ["POST"]
+          , ["/"]
+          , [] -- query string
+          ] ++
+            map (\(a,b) -> [CI.foldedCase a,":",b]) canonicalHeaders ++
+              [ [] -- end headers
+              , intersperse ";" (map (CI.foldedCase ∘ fst) canonicalHeaders)
+              , [bodyHash]
+              ]
+
+      auth =
+        authorizationV4
+          sigData
+          HmacSHA256
+          (regionToText _stcRegion)
+          "dynamodb"
+          "content-type;host;x-amz-date;x-amz-target"
+          canonicalRequest
 
 
 data StreamsErrorResponseData

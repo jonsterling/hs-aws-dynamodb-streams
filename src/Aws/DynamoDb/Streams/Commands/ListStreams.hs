@@ -55,7 +55,6 @@ import Data.Aeson
 import Data.Monoid
 import Data.Typeable
 
-import qualified Data.ByteString.Lazy as LB
 import qualified Data.Text as T
 
 data ListStreams
