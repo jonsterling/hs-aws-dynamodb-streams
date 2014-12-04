@@ -52,6 +52,7 @@ import Aws.DynamoDb.Streams.Types
 import Control.Applicative
 import Control.Applicative.Unicode
 import Data.Aeson
+import Data.Monoid
 import Data.Typeable
 
 import qualified Data.ByteString.Lazy as LB
@@ -88,6 +89,14 @@ instance FromJSON ListStreams where
         ⊛ o .: "Limit"
         ⊛ o .: "TableName"
 
+
+instance Monoid ListStreams where
+  mempty = listStreams
+  ls `mappend` ls' = ListStreams
+    { _lstExclusiveStartStreamId = _lstExclusiveStartStreamId ls <|> _lstExclusiveStartStreamId ls'
+    , _lstLimit = _lstLimit ls <|> _lstLimit ls'
+    , _lstTableName = _lstTableName ls <|> _lstTableName ls'
+    }
 
 -- | An empty 'ListStreams' request.
 --
@@ -200,7 +209,6 @@ lstrStreamIds
 lstrStreamIds i ListStreamsResponse{..} =
   (\_lstrStreamIds → ListStreamsResponse{..})
     <$> i _lstrStreamIds
-
 
 instance ResponseConsumer r ListStreamsResponse where
   type ResponseMetadata ListStreamsResponse = StreamsMetadata
