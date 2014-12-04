@@ -21,6 +21,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
 -- |
@@ -289,7 +290,7 @@ streamsSignQuery StreamsQuery{..} StreamsConfiguration{..} sigData = SignedQuery
   , sqAuthorization = Just auth
   , sqContentType = Just "application/x-amz-json-1.0"
   , sqContentMd5 = Nothing
-  , sqAmzHeaders = amzHeaders ++ maybe [] (\tok -> [("x-amz-security-token",tok)]) (iamToken credentials)
+  , sqAmzHeaders = amzHeaders ⊕ maybe [] pure securityTokenHeader
   , sqOtherHeaders = []
   , sqBody = Just $ HTTP.RequestBodyLBS _stqBody
   , sqStringToSign = canonicalRequest
@@ -305,24 +306,34 @@ streamsSignQuery StreamsQuery{..} StreamsConfiguration{..} sigData = SignedQuery
         , streamsTargetHeader _stqAction
         ]
 
+      securityTokenHeader =
+        ("x-amz-security-token",)
+          <$> iamToken credentials
+
       canonicalHeaders =
         sortBy (compare `on` fst) $
-          amzHeaders ++
+          amzHeaders ⊕
             [ ("host", host)
             , ("content-type", "application/x-amz-json-1.0")
             ]
 
       canonicalRequest =
         let bodyHash = B16.encode $ toBytes (hashlazy _stqBody :: Digest SHA256)
-        in B.concat ∘ intercalate ["\n"] $
-          [ ["POST"]
-          , ["/"]
-          , [] -- query string
-          ] ++
-            map (\(a,b) -> [CI.foldedCase a,":",b]) canonicalHeaders ++
+            headers =
+              flip fmap canonicalHeaders $ \(a,b) →
+                [ CI.foldedCase a
+                , ":"
+                , b
+                ]
+        in
+          B.concat ∘ intercalate ["\n"] $
+            [ [ "POST" ]
+            , [ "/" ]
+            , [] -- query string
+            ] ⊕ headers ⊕
               [ [] -- end headers
-              , intersperse ";" (map (CI.foldedCase ∘ fst) canonicalHeaders)
-              , [bodyHash]
+              , intersperse ";" ((CI.foldedCase ∘ fst) <$> canonicalHeaders)
+              , [ bodyHash ]
               ]
 
       auth =

@@ -144,14 +144,15 @@ import Data.Aeson.Types
 import qualified Data.Attoparsec.Text as Atto
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Base64 as B64
+import Data.Foldable (asum)
 import qualified Data.Map as M
-import qualified Data.Set as S
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import Data.Monoid.Unicode
 import Data.Profunctor
 import Data.Scientific
+import qualified Data.Set as S
 import Data.String
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.Time
 import Data.Traversable hiding (mapM)
 import Data.Typeable
@@ -353,19 +354,18 @@ instance ToJSON AttributeValue where
 
 instance FromJSON AttributeValue where
   parseJSON =
-    withObject "AttributeValue" $ \o → do
-      foldr (<|>) empty $
-        [ fmap AVBin ∘ parseBin =≪ o .: "B"
-        , fmap (AVBinSet ∘ S.fromList) ∘ mapM parseBin =≪ o .: "BS"
-        , AVBool <$> o .: "BOOL"
-        , AVList <$> o .: "L"
-        , AVMap <$> o .: "M"
-        , fmap AVNum ∘ parseScientific =≪ o .: "N"
-        , fmap (AVNumSet ∘ S.fromList) ∘ mapM parseScientific =≪ o .: "NS"
-        , AVString <$> o.: "S"
-        , AVStringSet ∘ S.fromList <$> o .: "SS"
-        , AVNull <$> o .: "NULL"
-        ]
+    withObject "AttributeValue" $ \o → asum
+      [ fmap AVBin ∘ parseBin =≪ o .: "B"
+      , fmap (AVBinSet ∘ S.fromList) ∘ mapM parseBin =≪ o .: "BS"
+      , AVBool <$> o .: "BOOL"
+      , AVList <$> o .: "L"
+      , AVMap <$> o .: "M"
+      , fmap AVNum ∘ parseScientific =≪ o .: "N"
+      , fmap (AVNumSet ∘ S.fromList) ∘ mapM parseScientific =≪ o .: "NS"
+      , AVString <$> o.: "S"
+      , AVStringSet ∘ S.fromList <$> o .: "SS"
+      , AVNull <$> o .: "NULL"
+      ]
 
     where
       parseBin =
@@ -612,12 +612,11 @@ parseEnum
   → Parser α
 parseEnum name render opts =
   withText name $ \str →
-    foldr (<|>) empty $
-      parser str <$> opts
+    asum $ parser str <$> opts
 
   where
     parser str o =
-      o <$ if (render o ≡ str)
+      o <$ if render o ≡ str
         then pure o
         else empty
 
@@ -866,7 +865,7 @@ instance FromJSON StreamRecord where
 --
 strKeys
   ∷ Functor f
-  ⇒ ((Maybe (M.Map T.Text AttributeValue)) → f (Maybe (M.Map T.Text AttributeValue)))
+  ⇒ (Maybe (M.Map T.Text AttributeValue) → f (Maybe (M.Map T.Text AttributeValue)))
   → StreamRecord
   → f StreamRecord
 strKeys i StreamRecord{..} =
@@ -882,7 +881,7 @@ strKeys i StreamRecord{..} =
 --
 strNewImage
   ∷ Functor f
-  ⇒ ((Maybe (M.Map T.Text AttributeValue)) → f (Maybe (M.Map T.Text AttributeValue)))
+  ⇒ (Maybe (M.Map T.Text AttributeValue) → f (Maybe (M.Map T.Text AttributeValue)))
   → StreamRecord
   → f StreamRecord
 strNewImage i StreamRecord{..} =
@@ -898,7 +897,7 @@ strNewImage i StreamRecord{..} =
 --
 strOldImage
   ∷ Functor f
-  ⇒ ((Maybe (M.Map T.Text AttributeValue)) → f (Maybe (M.Map T.Text AttributeValue)))
+  ⇒ (Maybe (M.Map T.Text AttributeValue) → f (Maybe (M.Map T.Text AttributeValue)))
   → StreamRecord
   → f StreamRecord
 strOldImage i StreamRecord{..} =
@@ -914,7 +913,7 @@ strOldImage i StreamRecord{..} =
 --
 strSequenceNumber
   ∷ Functor f
-  ⇒ ((Maybe SequenceNumber) → f (Maybe SequenceNumber))
+  ⇒ (Maybe SequenceNumber → f (Maybe SequenceNumber))
   → StreamRecord
   → f StreamRecord
 strSequenceNumber i StreamRecord{..} =
@@ -930,7 +929,7 @@ strSequenceNumber i StreamRecord{..} =
 --
 strSizeBytes
   ∷ Functor f
-  ⇒ ((Maybe Integer) → f (Maybe Integer))
+  ⇒ (Maybe Integer → f (Maybe Integer))
   → StreamRecord
   → f StreamRecord
 strSizeBytes i StreamRecord{..} =
@@ -946,7 +945,7 @@ strSizeBytes i StreamRecord{..} =
 --
 strStreamViewType
   ∷ Functor f
-  ⇒ ((Maybe StreamViewType) → f (Maybe StreamViewType))
+  ⇒ (Maybe StreamViewType → f (Maybe StreamViewType))
   → StreamRecord
   → f StreamRecord
 strStreamViewType i StreamRecord{..} =
@@ -1140,7 +1139,7 @@ instance FromJSON StreamDescription where
 --
 sdCreationRequestDateTime
   ∷ Functor f
-  ⇒ ((Maybe UTCTime) → f (Maybe UTCTime))
+  ⇒ (Maybe UTCTime → f (Maybe UTCTime))
   → StreamDescription
   → f StreamDescription
 sdCreationRequestDateTime i StreamDescription{..} =
@@ -1172,7 +1171,7 @@ sdKeySchema i StreamDescription{..} =
 --
 sdLastEvaluatedShardId
   ∷ Functor f
-  ⇒ ((Maybe ShardId) → f (Maybe ShardId))
+  ⇒ (Maybe ShardId → f (Maybe ShardId))
   → StreamDescription
   → f StreamDescription
 sdLastEvaluatedShardId i StreamDescription{..} =
@@ -1204,7 +1203,7 @@ sdShards i StreamDescription{..} =
 --
 sdStreamARN
   ∷ Functor f
-  ⇒ ((Maybe T.Text) → f (Maybe T.Text))
+  ⇒ (Maybe T.Text → f (Maybe T.Text))
   → StreamDescription
   → f StreamDescription
 sdStreamARN i StreamDescription{..} =
@@ -1220,7 +1219,7 @@ sdStreamARN i StreamDescription{..} =
 --
 sdStreamId
   ∷ Functor f
-  ⇒ ((Maybe StreamId) → f (Maybe StreamId))
+  ⇒ (Maybe StreamId → f (Maybe StreamId))
   → StreamDescription
   → f StreamDescription
 sdStreamId i StreamDescription{..} =
@@ -1236,7 +1235,7 @@ sdStreamId i StreamDescription{..} =
 --
 sdStreamStatus
   ∷ Functor f
-  ⇒ ((Maybe StreamStatus) → f (Maybe StreamStatus))
+  ⇒ (Maybe StreamStatus → f (Maybe StreamStatus))
   → StreamDescription
   → f StreamDescription
 sdStreamStatus i StreamDescription{..} =
@@ -1252,7 +1251,7 @@ sdStreamStatus i StreamDescription{..} =
 --
 sdStreamViewType
   ∷ Functor f
-  ⇒ ((Maybe StreamViewType) → f (Maybe StreamViewType))
+  ⇒ (Maybe StreamViewType → f (Maybe StreamViewType))
   → StreamDescription
   → f StreamDescription
 sdStreamViewType i StreamDescription{..} =
@@ -1268,7 +1267,7 @@ sdStreamViewType i StreamDescription{..} =
 --
 sdTableName
   ∷ Functor f
-  ⇒ ((Maybe T.Text) → f (Maybe T.Text))
+  ⇒ (Maybe T.Text → f (Maybe T.Text))
   → StreamDescription
   → f StreamDescription
 sdTableName i StreamDescription{..} =
@@ -1418,7 +1417,7 @@ instance FromJSON Record where
 --
 rAwsRegion
   ∷ Functor f
-  ⇒ ((Maybe Region) → f (Maybe Region))
+  ⇒ (Maybe Region → f (Maybe Region))
   → Record
   → f Record
 rAwsRegion i Record{..} =
@@ -1434,7 +1433,7 @@ rAwsRegion i Record{..} =
 --
 rStreamRecord
   ∷ Functor f
-  ⇒ ((Maybe StreamRecord) → f (Maybe StreamRecord))
+  ⇒ (Maybe StreamRecord → f (Maybe StreamRecord))
   → Record
   → f Record
 rStreamRecord i Record{..} =
@@ -1450,7 +1449,7 @@ rStreamRecord i Record{..} =
 --
 rEventId
   ∷ Functor f
-  ⇒ ((Maybe EventId) → f (Maybe EventId))
+  ⇒ (Maybe EventId → f (Maybe EventId))
   → Record
   → f Record
 rEventId i Record{..} =
@@ -1466,7 +1465,7 @@ rEventId i Record{..} =
 --
 rEventName
   ∷ Functor f
-  ⇒ ((Maybe EventName) → f (Maybe EventName))
+  ⇒ (Maybe EventName → f (Maybe EventName))
   → Record
   → f Record
 rEventName i Record{..} =
@@ -1482,7 +1481,7 @@ rEventName i Record{..} =
 --
 rEventSource
   ∷ Functor f
-  ⇒ ((Maybe T.Text) → f (Maybe T.Text))
+  ⇒ (Maybe T.Text → f (Maybe T.Text))
   → Record
   → f Record
 rEventSource i Record{..} =
@@ -1498,7 +1497,7 @@ rEventSource i Record{..} =
 --
 rEventVersion
   ∷ Functor f
-  ⇒ ((Maybe T.Text) → f (Maybe T.Text))
+  ⇒ (Maybe T.Text → f (Maybe T.Text))
   → Record
   → f Record
 rEventVersion i Record{..} =
