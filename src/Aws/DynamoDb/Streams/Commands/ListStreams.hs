@@ -85,9 +85,9 @@ instance FromJSON ListStreams where
   parseJSON =
     withObject "ListStreams" $ \o →
       pure ListStreams
-        ⊛ o .: "ExclusiveStartStreamId"
-        ⊛ o .: "Limit"
-        ⊛ o .: "TableName"
+        ⊛ o .:? "ExclusiveStartStreamId"
+        ⊛ o .:? "Limit"
+        ⊛ o .:? "TableName"
 
 
 instance Monoid ListStreams where
@@ -177,8 +177,8 @@ instance FromJSON ListStreamsResponse where
   parseJSON =
     withObject "ListStreamsResponse" $ \o →
       pure ListStreamsResponse
-        ⊛ o .: "LastEvaluatedStreamId"
-        ⊛ o .: "StreamIds"
+        ⊛ o .:? "LastEvaluatedStreamId"
+        ⊛ o .:? "StreamIds" .!= []
 
 -- | A lens for '_lstrLastEvalutedStreamId'.
 --
@@ -218,7 +218,7 @@ instance SignQuery ListStreams where
   type ServiceConfiguration ListStreams = StreamsConfiguration
   signQuery cmd = streamsSignQuery StreamsQuery
     { _stqAction = ActionListStreams
-    , _stqBody = Just $ LB.toStrict $ encode cmd
+    , _stqBody = encode cmd
     }
 
 instance Transaction ListStreams ListStreamsResponse

@@ -269,9 +269,9 @@ instance FromJSON Shard where
   parseJSON =
     withObject "Shard" $ \o →
       pure Shard
-        ⊛ o .: "ShardId"
-        ⊛ o .: "ParentShardId"
-        ⊛ o .: "SequenceNumberRange"
+        ⊛ o .:? "ShardId"
+        ⊛ o .:? "ParentShardId"
+        ⊛ o .:? "SequenceNumberRange"
 
 -- | A lens for '_shShardId'.
 --
@@ -851,12 +851,12 @@ instance FromJSON StreamRecord where
   parseJSON =
     withObject "StreamRecord" $ \o →
       pure StreamRecord
-        ⊛ o .: "Keys"
-        ⊛ o .: "NewImage"
-        ⊛ o .: "OldImage"
-        ⊛ o .: "SequenceNumber"
-        ⊛ o .: "SizeBytes"
-        ⊛ o .: "StreamViewType"
+        ⊛ o .:? "Keys"
+        ⊛ o .:? "NewImage"
+        ⊛ o .:? "OldImage"
+        ⊛ o .:? "SequenceNumber"
+        ⊛ o .:? "SizeBytes"
+        ⊛ o .:? "StreamViewType"
 
 -- | A lens for '_strKeys'.
 --
@@ -1120,13 +1120,13 @@ instance FromJSON StreamDescription where
       pure StreamDescription
         ⊛ (parseDateTime' =<< o .:? "CreationRequestDateTime")
         ⊛ o .:? "KeySchema" .!= []
-        ⊛ o .: "LastEvaluatedShardId"
+        ⊛ o .:? "LastEvaluatedShardId"
         ⊛ o .:? "Shards" .!= []
-        ⊛ o .: "StreamARN"
-        ⊛ o .: "StreamId"
-        ⊛ o .: "StreamStatus"
-        ⊛ o .: "StreamViewType"
-        ⊛ o .: "TableName"
+        ⊛ o .:? "StreamARN"
+        ⊛ o .:? "StreamId"
+        ⊛ o .:? "StreamStatus"
+        ⊛ o .:? "StreamViewType"
+        ⊛ o .:? "TableName"
     where
       parseDateTime' =
         maybe empty pure
@@ -1403,12 +1403,12 @@ instance FromJSON Record where
   parseJSON =
     withObject "Record" $ \o →
       pure Record
-        ⊛ (traverse (either fail pure ∘ fromText) =≪ o .: "awsRegion")
-        ⊛ o .: "dynamodb"
-        ⊛ o .: "eventID"
-        ⊛ o .: "eventName"
-        ⊛ o .: "eventSource"
-        ⊛ o .: "eventVersion"
+        ⊛ (traverse (either fail pure ∘ fromText) =≪ o .:? "awsRegion")
+        ⊛ o .:? "dynamodb"
+        ⊛ o .:? "eventID"
+        ⊛ o .:? "eventName"
+        ⊛ o .:? "eventSource"
+        ⊛ o .:? "eventVersion"
 
 -- | A lens for '_rAwsRegion'.
 --
