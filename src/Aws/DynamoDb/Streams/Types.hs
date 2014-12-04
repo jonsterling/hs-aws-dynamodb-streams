@@ -134,7 +134,6 @@ module Aws.DynamoDb.Streams.Types
 , sdTableName
 ) where
 
-import Aws.Core
 import Aws.General
 import Control.Applicative
 import Control.Applicative.Unicode
@@ -154,10 +153,10 @@ import Data.String
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Time
+import Data.Time.Clock.POSIX
 import Data.Traversable hiding (mapM)
 import Data.Typeable
 import Prelude.Unicode
-import System.Locale
 
 -- | Identifier for a shard.
 --
@@ -1100,7 +1099,7 @@ data StreamDescription
 
 instance ToJSON StreamDescription where
   toJSON StreamDescription{..} = object
-    [ "CreationRequestDateTime" .= fmap formatDateTime' _sdCreationRequestDateTime
+    [ "CreationRequestDateTime" .= (Number ∘ fromInteger ∘ round ∘ utcTimeToPOSIXSeconds <$> _sdCreationRequestDateTime)
     , "KeySchema" .= _sdKeySchema
     , "Shards" .= _sdShards
     , "StreamARN" .= _sdStreamARN
@@ -1109,27 +1108,20 @@ instance ToJSON StreamDescription where
     , "StreamViewType" .= _sdStreamViewType
     , "TableName" .= _sdTableName
     ]
-    where
-      formatDateTime' =
-        formatTime defaultTimeLocale iso8601UtcDate
 
 instance FromJSON StreamDescription where
   parseJSON =
     withObject "StreamDescription" $ \o →
       pure StreamDescription
-        ⊛ (parseDateTime' =<< o .:? "CreationRequestDateTime")
-        ⊛ o .:? "KeySchema" .!= []
-        ⊛ o .:? "LastEvaluatedShardId"
+        ⊛ (fmap (posixSecondsToUTCTime ∘ fromInteger) <$> o .:? "CreationRequestDateTime")
+        ⊛ pure [] -- o .:? "KeySchema" .!= []
+        ⊛ pure Nothing -- o .:? "LastEvaluatedShardId"
         ⊛ o .:? "Shards" .!= []
-        ⊛ o .:? "StreamARN"
-        ⊛ o .:? "StreamId"
-        ⊛ o .:? "StreamStatus"
-        ⊛ o .:? "StreamViewType"
-        ⊛ o .:? "TableName"
-    where
-      parseDateTime' =
-        maybe empty pure
-          ∘ fmap parseHttpDate
+        ⊛ pure Nothing -- o .:? "StreamARN"
+        ⊛ pure Nothing -- o .:? "StreamId"
+        ⊛ pure Nothing -- o .:? "StreamStatus"
+        ⊛ pure Nothing -- o .:? "StreamViewType"
+        ⊛ pure Nothing -- o .:? "TableName"
 
 -- | A lens for '_sdCreationRequestDateTime'.
 --
