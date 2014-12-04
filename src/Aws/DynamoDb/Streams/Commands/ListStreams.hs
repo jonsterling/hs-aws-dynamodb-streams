@@ -60,8 +60,16 @@ import qualified Data.Text as T
 data ListStreams
   = ListStreams
   { _lstExclusiveStartStreamId ∷ !(Maybe StreamId)
+    -- ^ The stream id of the first item that this operation will evaluate;
+    -- also see '_lstrLastEvalutedStreamId'.
+
   , _lstLimit ∷ !(Maybe Int)
+    -- ^ The maximum number of streams to return.
+
   , _lstTableName ∷ !(Maybe T.Text)
+    -- ^ If this parameter is provided, then only the streams associated with
+    -- this table are returned.
+
   } deriving (Eq, Ord, Show, Read, Typeable)
 
 
@@ -143,7 +151,11 @@ lstTableName i ListStreams{..} =
 data ListStreamsResponse
   = ListStreamsResponse
   { _lstrLastEvalutedStreamId ∷ !(Maybe StreamId)
+    -- ^ When empty, this indicates that there are no more streams to be
+    -- retrieved.
+
   , _lstrStreamIds ∷ ![StreamId]
+    -- ^ A list of stream ids associated with the current account and endpoint.
   } deriving (Eq, Ord, Read, Show, Typeable)
 
 instance ToJSON ListStreamsResponse where
