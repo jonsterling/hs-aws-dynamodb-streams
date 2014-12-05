@@ -21,12 +21,17 @@
 -- License: Apache-2.0
 --
 module Aws.DynamoDb.Streams
-( module M
+( module Aws.DynamoDb.Streams.Core
+, module Aws.DynamoDb.Streams.Types
+, module Aws.DynamoDb.Streams.Commands.ListStreams
+, module Aws.DynamoDb.Streams.Commands.DescribeStream
+, module Aws.DynamoDb.Streams.Commands.GetShardIterator
+, module Aws.DynamoDb.Streams.Commands.GetRecords
 ) where
 
-import Aws.DynamoDb.Streams.Core as M
-import Aws.DynamoDb.Streams.Types as M
-import Aws.DynamoDb.Streams.Commands.ListStreams as M
-import Aws.DynamoDb.Streams.Commands.DescribeStream as M
-import Aws.DynamoDb.Streams.Commands.GetShardIterator as M
-import Aws.DynamoDb.Streams.Commands.GetRecords as M
+import Aws.DynamoDb.Streams.Core
+import Aws.DynamoDb.Streams.Types
+import Aws.DynamoDb.Streams.Commands.ListStreams
+import Aws.DynamoDb.Streams.Commands.DescribeStream
+import Aws.DynamoDb.Streams.Commands.GetShardIterator
+import Aws.DynamoDb.Streams.Commands.GetRecords
