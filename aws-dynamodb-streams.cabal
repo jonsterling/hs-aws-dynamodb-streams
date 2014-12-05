@@ -17,6 +17,7 @@ library
                        Aws.DynamoDb.Streams.Types
                        Aws.DynamoDb.Streams.Commands.ListStreams
                        Aws.DynamoDb.Streams.Commands.DescribeStream
+                       Aws.DynamoDb.Streams.Commands.GetShardIterator
   build-depends:       base >=4.7 && <4.8,
                        base-unicode-symbols,
                        attoparsec >=0.12.0.0,

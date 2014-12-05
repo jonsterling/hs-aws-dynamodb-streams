@@ -41,6 +41,15 @@ module Aws.DynamoDb.Streams.Types
 , shParentShardId
 , shSequenceNumberRange
 
+  -- * Shard Iterators
+, ShardIterator
+, ShardIteratorType(..)
+  -- ** Prisms
+, _ShardIteratorTrimHorizon
+, _ShardIteratorLatest
+, _ShardIteratorAtSequenceNumber
+, _ShardIteratorAfterSequenceNumber
+
   -- * Attribute Values
 , AttributeValue(..)
   -- ** Prisms
@@ -1498,3 +1507,131 @@ rEventVersion i Record{..} =
 {-# INLINE rEventVersion #-}
 
 
+data ShardIteratorType
+  = ShardIteratorTrimHorizon
+  | ShardIteratorLatest
+  | ShardIteratorAtSequenceNumber
+  | ShardIteratorAfterSequenceNumber
+  deriving (Eq, Ord, Enum, Read, Show, Typeable)
+
+shardIteratorTypeToText
+  ∷ IsString s
+  ⇒ ShardIteratorType
+  → s
+shardIteratorTypeToText = \case
+  ShardIteratorTrimHorizon → "TRIM_HORIZON"
+  ShardIteratorLatest → "LATEST"
+  ShardIteratorAtSequenceNumber → "AT_SEQUENCE_NUMBER"
+  ShardIteratorAfterSequenceNumber → "AFTER_SEQUENCE_NUMBER"
+
+instance ToJSON ShardIteratorType where
+  toJSON = shardIteratorTypeToText
+
+instance FromJSON ShardIteratorType where
+  parseJSON =
+    parseEnum "ShardIteratorType" shardIteratorTypeToText
+      [ ShardIteratorTrimHorizon
+      , ShardIteratorLatest
+      , ShardIteratorAtSequenceNumber
+      , ShardIteratorAfterSequenceNumber
+      ]
+
+-- | A prism for 'ShardIteratorTrimHorizon'.
+--
+-- @
+-- '_ShardIteratorTrimHorizon' ∷ Prism' 'ShardIteratorType' '()'
+-- @
+_ShardIteratorTrimHorizon
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p ShardIteratorType (f ShardIteratorType)
+_ShardIteratorTrimHorizon =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        ShardIteratorTrimHorizon → Right ()
+        e → Left e
+      fro = either pure (const $ pure ShardIteratorTrimHorizon)
+{-# INLINE _ShardIteratorTrimHorizon #-}
+
+-- | A prism for 'ShardIteratorLatest'.
+--
+-- @
+-- '_ShardIteratorLatest' ∷ Prism' 'ShardIteratorType' '()'
+-- @
+_ShardIteratorLatest
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p ShardIteratorType (f ShardIteratorType)
+_ShardIteratorLatest =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        ShardIteratorLatest → Right ()
+        e → Left e
+      fro = either pure (const $ pure ShardIteratorLatest)
+{-# INLINE _ShardIteratorLatest #-}
+
+-- | A prism for 'ShardIteratorAtSequenceNumber'.
+--
+-- @
+-- '_ShardIteratorAtSequenceNumber' ∷ Prism' 'ShardIteratorType' '()'
+-- @
+_ShardIteratorAtSequenceNumber
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p ShardIteratorType (f ShardIteratorType)
+_ShardIteratorAtSequenceNumber =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        ShardIteratorAtSequenceNumber → Right ()
+        e → Left e
+      fro = either pure (const $ pure ShardIteratorAtSequenceNumber)
+{-# INLINE _ShardIteratorAtSequenceNumber #-}
+
+-- | A prism for 'ShardIteratorAfterSequenceNumber'.
+--
+-- @
+-- '_ShardIteratorAfterSequenceNumber' ∷ Prism' 'ShardIteratorType' '()'
+-- @
+_ShardIteratorAfterSequenceNumber
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p () (f ())
+  → p ShardIteratorType (f ShardIteratorType)
+_ShardIteratorAfterSequenceNumber =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        ShardIteratorAfterSequenceNumber → Right ()
+        e → Left e
+      fro = either pure (const $ pure ShardIteratorAfterSequenceNumber)
+{-# INLINE _ShardIteratorAfterSequenceNumber #-}
+
+
+-- | The position in the shard from which to start reading stream records
+-- sequentially. A shard iterator specifies this position using the sequence
+-- number of a stream record in a shard.
+--
+-- Length constraints: @1 ≤ n ≤ 2048@.
+--
+newtype ShardIterator
+  = ShardIterator
+  { _sitText ∷ T.Text
+  } deriving (Eq, Ord, Typeable, Show, Read)
+
+instance ToJSON ShardIterator where
+  toJSON = toJSON ∘ _sitText
+
+instance FromJSON ShardIterator where
+  parseJSON =
+    withText "ShardIterator" $
+      pure ∘ ShardIterator
