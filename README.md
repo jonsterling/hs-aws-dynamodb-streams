@@ -6,8 +6,8 @@ Haskell Bindings for [Amazon DynamoDb Streams](https://aws.amazon.com/dynamodb/)
 Installation
 ============
 
-Assuming that the Haskell compiler *GHC* and the Haskell build tool *cabal* is already
-installed run the following command from the shell:
+Assuming that the Haskell compiler *GHC* and the Haskell build tool *cabal* is
+already installed run the following command from the shell:
 
 ~~~{.sh}
 cabal install --enable-documentation
@@ -16,9 +16,11 @@ cabal install --enable-documentation
 Example Usage
 =============
 
-Here is a very simple example for making a call to DynamoDb Streams.
-For more ellaborate usage refer to the [documentation of the AWS
-package](https://hackage.haskell.org/package/aws).
+Here is a very simple example for making a call to DynamoDb Streams.  For more
+ellaborate usage refer to the [documentation of the AWS
+package](https://hackage.haskell.org/package/aws). These bindings have
+extensive support for lenses and prisms; we do not incur a dependency on
+`lens`, but `profunctors` is required.
 
 ~~~{.haskell}
 import Aws
@@ -30,7 +32,9 @@ main = do
   awsConfiguration ← baseConfiguration
   let configuration = StreamsConfiguration UsEast1
   ListStreamsResponse{..} ← simpleAws awsConfiguration configuration listStreams
-  DescribeStreamResponse StreamDescription{..} ← simpleAws awsConfiguration configuration . describeStream $ head _lstrStreamIds
+  DescribeStreamResponse StreamDescription{..} ←
+    simpleAws awsConfiguration configuration . describeStream $
+      head _lstrStreamIds
 
   GetShardIteratorResponse{..} ← simpleAws awsConfiguration configuration $
     let Just shardId = _shShardId $ head _sdShards
