@@ -13,7 +13,8 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Aws.DynamoDb.Streams.Core,
+  exposed-modules:     Aws.DynamoDb.Streams,
+                       Aws.DynamoDb.Streams.Core,
                        Aws.DynamoDb.Streams.Types
                        Aws.DynamoDb.Streams.Commands.ListStreams
                        Aws.DynamoDb.Streams.Commands.DescribeStream
