@@ -113,7 +113,7 @@ instance FromJSON GetShardIterator where
 -- | A lens for '_gsiSequenceNumber'.
 --
 -- @
--- 'gsiSequenceNumber' ∷ Lens' 'GetShardIterator' ('Maybe' 'SequenceNubmer')
+-- 'gsiSequenceNumber' ∷ Lens' 'GetShardIterator' ('Maybe' 'SequenceNumber')
 -- @
 --
 gsiSequenceNumber
@@ -128,7 +128,7 @@ gsiSequenceNumber i GetShardIterator{..} =
 -- | A lens for '_gsiShardId'.
 --
 -- @
--- 'gsiShardId' ∷ Lens' 'GetShardIterator' 'ShardId '
+-- 'gsiShardId' ∷ Lens' 'GetShardIterator' 'ShardId'
 -- @
 --
 gsiShardId
@@ -143,7 +143,7 @@ gsiShardId i GetShardIterator{..} =
 -- | A lens for '_gsiShardIteratorType'.
 --
 -- @
--- 'gsiShardIteratorType' ∷ Lens' 'GetShardIterator' 'ShardIteratorType '
+-- 'gsiShardIteratorType' ∷ Lens' 'GetShardIterator' 'ShardIteratorType'
 -- @
 --
 gsiShardIteratorType
@@ -158,7 +158,7 @@ gsiShardIteratorType i GetShardIterator{..} =
 -- | A lens for '_gsiStreamId'.
 --
 -- @
--- 'gsiStreamId' ∷ Lens' 'GetShardIterator' 'StreamId '
+-- 'gsiStreamId' ∷ Lens' 'GetShardIterator' 'StreamId'
 -- @
 --
 gsiStreamId
