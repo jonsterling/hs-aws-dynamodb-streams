@@ -98,6 +98,7 @@ grShardIterator
 grShardIterator i GetRecords{..} =
   (\_grShardIterator → GetRecords{..})
     <$> i _grShardIterator
+{-# INLINE grShardIterator #-}
 
 -- | A lens for '_grLimit'.
 --
@@ -113,6 +114,7 @@ grLimit
 grLimit i GetRecords{..} =
   (\_grLimit → GetRecords{..})
     <$> i _grLimit
+{-# INLINE grLimit #-}
 
 data GetRecordsResponse
   = GetRecordsResponse
@@ -147,6 +149,7 @@ grrRecords
 grrRecords i GetRecordsResponse{..} =
   (\_grrRecords → GetRecordsResponse{..})
     <$> i _grrRecords
+{-# INLINE grrRecords #-}
 
 -- | A lens for '_grrNextShardIterator'.
 --
@@ -162,6 +165,7 @@ grrNextShardIterator
 grrNextShardIterator i GetRecordsResponse{..} =
   (\_grrNextShardIterator → GetRecordsResponse{..})
     <$> i _grrNextShardIterator
+{-# INLINE grrNextShardIterator #-}
 
 instance ResponseConsumer r GetRecordsResponse where
   type ResponseMetadata GetRecordsResponse = StreamsMetadata

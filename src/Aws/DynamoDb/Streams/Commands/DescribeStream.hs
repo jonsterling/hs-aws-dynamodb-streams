@@ -112,6 +112,7 @@ dstExclusiveStartShardId
 dstExclusiveStartShardId i DescribeStream{..} =
   (\_dstExclusiveStartShardId → DescribeStream{..})
     <$> i _dstExclusiveStartShardId
+{-# INLINE dstExclusiveStartShardId #-}
 
 -- | A lens for '_dstLimit'.
 --
@@ -127,6 +128,7 @@ dstLimit
 dstLimit i DescribeStream{..} =
   (\_dstLimit → DescribeStream{..})
     <$> i _dstLimit
+{-# INLINE dstLimit #-}
 
 -- | A lens for '_dstStreamId'.
 --
@@ -142,7 +144,7 @@ dstStreamId
 dstStreamId i DescribeStream{..} =
   (\_dstStreamId → DescribeStream{..})
     <$> i _dstStreamId
-
+{-# INLINE dstStreamId #-}
 
 data DescribeStreamResponse
   = DescribeStreamResponse
@@ -175,6 +177,7 @@ dstrStreamDescription
 dstrStreamDescription i DescribeStreamResponse{..} =
   (\_dstrStreamDescription → DescribeStreamResponse{..})
     <$> i _dstrStreamDescription
+{-# INLINE dstrStreamDescription #-}
 
 instance ResponseConsumer r DescribeStreamResponse where
   type ResponseMetadata DescribeStreamResponse = StreamsMetadata

@@ -124,6 +124,7 @@ gsiSequenceNumber
 gsiSequenceNumber i GetShardIterator{..} =
   (\_gsiSequenceNumber → GetShardIterator{..})
     <$> i _gsiSequenceNumber
+{-# INLINE gsiSequenceNumber #-}
 
 -- | A lens for '_gsiShardId'.
 --
@@ -139,6 +140,7 @@ gsiShardId
 gsiShardId i GetShardIterator{..} =
   (\_gsiShardId → GetShardIterator{..})
     <$> i _gsiShardId
+{-# INLINE gsiShardId #-}
 
 -- | A lens for '_gsiShardIteratorType'.
 --
@@ -154,6 +156,7 @@ gsiShardIteratorType
 gsiShardIteratorType i GetShardIterator{..} =
   (\_gsiShardIteratorType → GetShardIterator{..})
     <$> i _gsiShardIteratorType
+{-# INLINE gsiShardIteratorType #-}
 
 -- | A lens for '_gsiStreamId'.
 --
@@ -169,7 +172,7 @@ gsiStreamId
 gsiStreamId i GetShardIterator{..} =
   (\_gsiStreamId → GetShardIterator{..})
     <$> i _gsiStreamId
-
+{-# INLINE gsiStreamId #-}
 
 data GetShardIteratorResponse
   = GetShardIteratorResponse
@@ -201,6 +204,7 @@ gsirShardIterator
 gsirShardIterator i GetShardIteratorResponse{..} =
   (\_gsirShardIterator → GetShardIteratorResponse{..})
     <$> i _gsirShardIterator
+{-# INLINE gsirShardIterator #-}
 
 instance ResponseConsumer r GetShardIteratorResponse where
   type ResponseMetadata GetShardIteratorResponse = StreamsMetadata

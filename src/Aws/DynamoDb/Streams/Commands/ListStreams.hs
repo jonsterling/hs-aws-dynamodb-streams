@@ -124,6 +124,7 @@ lstExclusiveStartStreamId
 lstExclusiveStartStreamId i ListStreams{..} =
   (\_lstExclusiveStartStreamId → ListStreams{..})
     <$> i _lstExclusiveStartStreamId
+{-# INLINE lstExclusiveStartStreamId #-}
 
 -- | A lens for '_lstlimit'.
 --
@@ -139,6 +140,7 @@ lstLimit
 lstLimit i ListStreams{..} =
   (\_lstLimit → ListStreams{..})
     <$> i _lstLimit
+{-# INLINE lstLimit #-}
 
 -- | A lens for '_lstTableName'.
 --
@@ -154,6 +156,7 @@ lstTableName
 lstTableName i ListStreams{..} =
   (\_lstTableName → ListStreams{..})
     <$> i _lstTableName
+{-# INLINE lstTableName #-}
 
 
 data ListStreamsResponse
@@ -193,6 +196,7 @@ lstrLastEvalutedStreamId
 lstrLastEvalutedStreamId i ListStreamsResponse{..} =
   (\_lstrLastEvalutedStreamId → ListStreamsResponse{..})
     <$> i _lstrLastEvalutedStreamId
+{-# INLINE lstrLastEvalutedStreamId #-}
 
 -- | A lens for '_lstrStreamIds'.
 --
@@ -208,6 +212,7 @@ lstrStreamIds
 lstrStreamIds i ListStreamsResponse{..} =
   (\_lstrStreamIds → ListStreamsResponse{..})
     <$> i _lstrStreamIds
+{-# INLINE lstrStreamIds #-}
 
 instance ResponseConsumer r ListStreamsResponse where
   type ResponseMetadata ListStreamsResponse = StreamsMetadata
