@@ -1,6 +1,6 @@
 name:                aws-dynamodb-streams
 version:             0.1.0.0
--- synopsis:
+synopsis:            Haskell bindings for Amazon DynamoDB Streams
 -- description:
 license:             Apache-2.0
 license-file:        LICENSE
