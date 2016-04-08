@@ -20,7 +20,7 @@ library
                        Aws.DynamoDb.Streams.Commands.DescribeStream
                        Aws.DynamoDb.Streams.Commands.GetShardIterator
                        Aws.DynamoDb.Streams.Commands.GetRecords
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >=4.7 && <4.9,
                        base-unicode-symbols,
                        attoparsec >=0.12.0.0,
                        aeson >=0.8.0.0,
