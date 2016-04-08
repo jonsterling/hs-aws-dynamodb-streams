@@ -33,7 +33,7 @@ module Aws.DynamoDb.Streams.Commands.ListStreams
   ListStreams(..)
 , listStreams
   -- ** Lenses
-, lstExclusiveStartStreamId
+, lstExclusiveStartStreamArn
 , lstLimit
 , lstTableName
 
@@ -41,8 +41,8 @@ module Aws.DynamoDb.Streams.Commands.ListStreams
 , ListStreamsResponse(..)
 
   -- ** Lenses
-, lstrLastEvalutedStreamId
-, lstrStreamIds
+, lstrLastEvaluatedStreamArn
+, lstrStreams
 ) where
 
 import Aws.Core
@@ -53,15 +53,14 @@ import Control.Applicative
 import Control.Applicative.Unicode
 import Data.Aeson
 import Data.Monoid
-import Data.Typeable
-
 import qualified Data.Text as T
+import Data.Typeable
 
 data ListStreams
   = ListStreams
-  { _lstExclusiveStartStreamId ∷ !(Maybe StreamId)
-    -- ^ The stream ID of the first item that this operation will evaluate;
-    -- also see '_lstrLastEvalutedStreamId'.
+  { _lstExclusiveStartStreamArn ∷ !(Maybe T.Text)
+    -- ^ The stream ARN of the first item that this operation will evaluate;
+    -- also see '_lstrLastEvaluatedStreamArn'.
 
   , _lstLimit ∷ !(Maybe Int)
     -- ^ The maximum number of streams to return.
@@ -75,7 +74,7 @@ data ListStreams
 
 instance ToJSON ListStreams where
   toJSON ListStreams{..} = object
-    [ "ExclusiveStartStreamId" .= _lstExclusiveStartStreamId
+    [ "ExclusiveStartStreamArn" .= _lstExclusiveStartStreamArn
     , "Limit" .= _lstLimit
     , "TableName" .= _lstTableName
     ]
@@ -84,7 +83,7 @@ instance FromJSON ListStreams where
   parseJSON =
     withObject "ListStreams" $ \o →
       pure ListStreams
-        ⊛ o .:? "ExclusiveStartStreamId"
+        ⊛ o .:? "ExclusiveStartStreamArn"
         ⊛ o .:? "Limit"
         ⊛ o .:? "TableName"
 
@@ -92,7 +91,7 @@ instance FromJSON ListStreams where
 instance Monoid ListStreams where
   mempty = listStreams
   ls `mappend` ls' = ListStreams
-    { _lstExclusiveStartStreamId = _lstExclusiveStartStreamId ls <|> _lstExclusiveStartStreamId ls'
+    { _lstExclusiveStartStreamArn = _lstExclusiveStartStreamArn ls <|> _lstExclusiveStartStreamArn ls'
     , _lstLimit = _lstLimit ls <|> _lstLimit ls'
     , _lstTableName = _lstTableName ls <|> _lstTableName ls'
     }
@@ -105,26 +104,26 @@ instance Monoid ListStreams where
 --
 listStreams ∷ ListStreams
 listStreams = ListStreams
-  { _lstExclusiveStartStreamId = Nothing
+  { _lstExclusiveStartStreamArn = Nothing
   , _lstLimit = Nothing
   , _lstTableName = Nothing
   }
 
--- | A lens for '_lstExclusiveStartStreamId'.
+-- | A lens for '_lstExclusiveStartStreamArn'.
 --
 -- @
--- lstExclusiveStartStreamId ∷ Lens' 'ListStreams' ('Maybe' 'StreamId')
+-- lstExclusiveStartStreamArn ∷ Lens' 'ListStreams' ('Maybe' 'T.Text')
 -- @
 --
-lstExclusiveStartStreamId
+lstExclusiveStartStreamArn
   ∷ Functor f
-  ⇒ (Maybe StreamId → f (Maybe StreamId))
+  ⇒ (Maybe T.Text → f (Maybe T.Text))
   → ListStreams
   → f ListStreams
-lstExclusiveStartStreamId i ListStreams{..} =
-  (\_lstExclusiveStartStreamId → ListStreams{..})
-    <$> i _lstExclusiveStartStreamId
-{-# INLINE lstExclusiveStartStreamId #-}
+lstExclusiveStartStreamArn i ListStreams{..} =
+  (\_lstExclusiveStartStreamArn → ListStreams{..})
+    <$> i _lstExclusiveStartStreamArn
+{-# INLINE lstExclusiveStartStreamArn #-}
 
 -- | A lens for '_lstlimit'.
 --
@@ -161,58 +160,58 @@ lstTableName i ListStreams{..} =
 
 data ListStreamsResponse
   = ListStreamsResponse
-  { _lstrLastEvalutedStreamId ∷ !(Maybe StreamId)
+  { _lstrLastEvaluatedStreamArn ∷ !(Maybe T.Text)
     -- ^ When empty, this indicates that there are no more streams to be
     -- retrieved.
 
-  , _lstrStreamIds ∷ ![StreamId]
+  , _lstrStreams ∷ ![Stream]
     -- ^ A list of stream IDs associated with the current account and endpoint.
   } deriving (Eq, Ord, Read, Show, Typeable)
 
 instance ToJSON ListStreamsResponse where
   toJSON ListStreamsResponse{..} = object
-    [ "LastEvaluatedStreamId" .= _lstrLastEvalutedStreamId
-    , "StreamIds" .= _lstrStreamIds
+    [ "LastEvaluatedStreamArn" .= _lstrLastEvaluatedStreamArn
+    , "Streams" .= _lstrStreams
     ]
 
 instance FromJSON ListStreamsResponse where
   parseJSON =
     withObject "ListStreamsResponse" $ \o →
       pure ListStreamsResponse
-        ⊛ o .:? "LastEvaluatedStreamId"
-        ⊛ o .:? "StreamIds" .!= []
+        ⊛ o .:? "LastEvaluatedStreamArn"
+        ⊛ o .:? "Streams" .!= []
 
--- | A lens for '_lstrLastEvalutedStreamId'.
+-- | A lens for '_lstrLastEvaluatedStreamArn'.
 --
 -- @
--- lstrLastEvalutedStreamId ∷ Lens' 'ListStreamsResponse' ('Maybe' 'StreamId')
+-- lstrLastEvaluatedStreamArn ∷ Lens' 'ListStreamsResponse' ('Maybe' 'T.Text')
 -- @
 --
-lstrLastEvalutedStreamId
+lstrLastEvaluatedStreamArn
   ∷ Functor f
-  ⇒ (Maybe StreamId → f (Maybe StreamId))
+  ⇒ (Maybe T.Text → f (Maybe T.Text))
   → ListStreamsResponse
   → f ListStreamsResponse
-lstrLastEvalutedStreamId i ListStreamsResponse{..} =
-  (\_lstrLastEvalutedStreamId → ListStreamsResponse{..})
-    <$> i _lstrLastEvalutedStreamId
-{-# INLINE lstrLastEvalutedStreamId #-}
+lstrLastEvaluatedStreamArn i ListStreamsResponse{..} =
+  (\_lstrLastEvaluatedStreamArn → ListStreamsResponse{..})
+    <$> i _lstrLastEvaluatedStreamArn
+{-# INLINE lstrLastEvaluatedStreamArn #-}
 
--- | A lens for '_lstrStreamIds'.
+-- | A lens for '_lstrStreams'.
 --
 -- @
--- lstrStreamIds ∷ Lens' 'ListStreamsResponse' ['StreamId']
+-- lstrStreams ∷ Lens' 'ListStreamsResponse' ['Stream']
 -- @
 --
-lstrStreamIds
+lstrStreams
   ∷ Functor f
-  ⇒ ([StreamId] → f [StreamId])
+  ⇒ ([Stream] → f [Stream])
   → ListStreamsResponse
   → f ListStreamsResponse
-lstrStreamIds i ListStreamsResponse{..} =
-  (\_lstrStreamIds → ListStreamsResponse{..})
-    <$> i _lstrStreamIds
-{-# INLINE lstrStreamIds #-}
+lstrStreams i ListStreamsResponse{..} =
+  (\_lstrStreams → ListStreamsResponse{..})
+    <$> i _lstrStreams
+{-# INLINE lstrStreams #-}
 
 instance ResponseConsumer r ListStreamsResponse where
   type ResponseMetadata ListStreamsResponse = StreamsMetadata
@@ -231,12 +230,12 @@ instance AsMemoryResponse ListStreamsResponse where
   type MemoryResponse ListStreamsResponse = ListStreamsResponse
   loadToMemory = return
 
-instance ListResponse ListStreamsResponse StreamId where
-  listResponse = _lstrStreamIds
+instance ListResponse ListStreamsResponse Stream where
+  listResponse = _lstrStreams
 
 instance IteratedTransaction ListStreams ListStreamsResponse where
   nextIteratedRequest req@ListStreams{..} ListStreamsResponse{..} = do
-    lastEvaluatedStreamId ← _lstrLastEvalutedStreamId
+    lastEvaluatedStreamArn ← _lstrLastEvaluatedStreamArn
     return req
-      { _lstExclusiveStartStreamId = Just lastEvaluatedStreamId
+      { _lstExclusiveStartStreamArn = Just lastEvaluatedStreamArn
       }
