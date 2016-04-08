@@ -44,12 +44,12 @@ module Aws.DynamoDb.Streams.Commands.DescribeStream
 ) where
 
 import Aws.Core
+import Aws.General (Arn)
 import Aws.DynamoDb.Streams.Core
 import Aws.DynamoDb.Streams.Types
 import Control.Applicative
 import Control.Applicative.Unicode
 import Data.Aeson
-import qualified Data.Text as T
 import Data.Typeable
 import Prelude.Unicode
 
@@ -62,8 +62,8 @@ data DescribeStream
   , _dstLimit ∷ !(Maybe Int)
     -- ^ The maximum number of shard objects to return.
 
-  , _dstStreamArn ∷ !T.Text
-    -- ^ The unique ID of the stream to be described.
+  , _dstStreamArn ∷ !Arn
+    -- ^ The ARN of the stream to be described.
 
   } deriving (Eq, Ord, Show, Read, Typeable)
 
@@ -76,7 +76,7 @@ data DescribeStream
 -- @
 --
 describeStream
-  ∷ T.Text
+  ∷ Arn
   → DescribeStream
 describeStream streamArn = DescribeStream
   { _dstExclusiveStartShardId = Nothing
@@ -139,7 +139,7 @@ dstLimit i DescribeStream{..} =
 --
 dstStreamArn
   ∷ Functor f
-  ⇒ (T.Text → f T.Text)
+  ⇒ (Arn → f Arn)
   → DescribeStream
   → f DescribeStream
 dstStreamArn i DescribeStream{..} =

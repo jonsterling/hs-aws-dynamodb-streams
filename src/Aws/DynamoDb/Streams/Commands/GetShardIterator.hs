@@ -45,12 +45,12 @@ module Aws.DynamoDb.Streams.Commands.GetShardIterator
 ) where
 
 import Aws.Core
+import Aws.General (Arn)
 import Aws.DynamoDb.Streams.Core
 import Aws.DynamoDb.Streams.Types
 import Control.Applicative
 import Control.Applicative.Unicode
 import Data.Aeson
-import qualified Data.Text as T
 import Data.Typeable
 
 -- | A shard iterator provides information about how to retrieve stream records
@@ -70,7 +70,7 @@ data GetShardIterator
     -- ^ Determines how the shard iterator is used to start reading stream
     -- records from the shard.
 
-  , _gsiStreamArn ∷ !T.Text
+  , _gsiStreamArn ∷ !Arn
   } deriving (Eq, Ord, Read, Show, Typeable)
 
 -- | A basic 'GetShardIterator' request for a given stream id.
@@ -82,7 +82,7 @@ data GetShardIterator
 -- @
 --
 getShardIterator
-  ∷ T.Text
+  ∷ Arn
   → ShardId
   → ShardIteratorType
   → GetShardIterator
@@ -167,7 +167,7 @@ gsiShardIteratorType i GetShardIterator{..} =
 --
 gsiStreamArn
   ∷ Functor f
-  ⇒ (T.Text → f T.Text)
+  ⇒ (Arn → f Arn)
   → GetShardIterator
   → f GetShardIterator
 gsiStreamArn i GetShardIterator{..} =

@@ -1098,7 +1098,7 @@ _StatusDisabled =
 
 data Stream
   = Stream
-  { _sStreamArn ∷ !(Maybe T.Text)
+  { _sStreamArn ∷ !(Maybe Arn)
   , _sStreamLabel ∷ !(Maybe StreamLabel)
   , _sTableName ∷ !(Maybe T.Text)
   } deriving (Eq, Ord, Show, Read, Typeable)
@@ -1126,7 +1126,7 @@ instance FromJSON Stream where
 --
 sStreamArn
   ∷ Functor f
-  ⇒ (Maybe T.Text → f (Maybe T.Text))
+  ⇒ (Maybe Arn → f (Maybe Arn))
   → Stream
   → f Stream
 sStreamArn i Stream{..} =
@@ -1172,7 +1172,7 @@ data StreamDescription
   , _sdKeySchema ∷ ![KeySchemaElement]
   , _sdLastEvaluatedShardId ∷ !(Maybe ShardId)
   , _sdShards ∷ ![Shard]
-  , _sdStreamArn ∷ !(Maybe T.Text)
+  , _sdStreamArn ∷ !(Maybe Arn)
   , _sdStreamLabel ∷ !(Maybe StreamLabel)
   , _sdStreamStatus ∷ !(Maybe StreamStatus)
   , _sdStreamViewType ∷ !(Maybe StreamViewType)
@@ -1277,7 +1277,7 @@ sdShards i StreamDescription{..} =
 --
 sdStreamArn
   ∷ Functor f
-  ⇒ (Maybe T.Text → f (Maybe T.Text))
+  ⇒ (Maybe Arn → f (Maybe Arn))
   → StreamDescription
   → f StreamDescription
 sdStreamArn i StreamDescription{..} =
