@@ -33,13 +33,13 @@ main = do
   let configuration = StreamsConfiguration UsEast1
   ListStreamsResponse{..} ← simpleAws awsConfiguration configuration listStreams
   DescribeStreamResponse StreamDescription{..} ←
-    simpleAws awsConfiguration configuration . describeStream $
-      head _lstrStreamIds
+    let Just streamArn = _sStreamArn $ head _lstrStreams
+    in simpleAws awsConfiguration configuration $ describeStream streamArn
 
   GetShardIteratorResponse{..} ← simpleAws awsConfiguration configuration $
     let Just shardId = _shShardId $ head _sdShards
-        Just streamId = _sdStreamId
-    in getShardIterator streamId shardId ShardIteratorLatest
+        Just streamArn = _sdStreamArn
+    in getShardIterator streamArn shardId ShardIteratorLatest
 
   resp ← simpleAws awsConfiguration configuration $ getRecords _gsirShardIterator
   print resp

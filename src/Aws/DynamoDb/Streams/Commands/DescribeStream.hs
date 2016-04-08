@@ -35,7 +35,7 @@ module Aws.DynamoDb.Streams.Commands.DescribeStream
   -- ** Lenses
 , dstExclusiveStartShardId
 , dstLimit
-, dstStreamId
+, dstStreamArn
 
   -- * Response
 , DescribeStreamResponse(..)
@@ -44,6 +44,7 @@ module Aws.DynamoDb.Streams.Commands.DescribeStream
 ) where
 
 import Aws.Core
+import Aws.General (Arn)
 import Aws.DynamoDb.Streams.Core
 import Aws.DynamoDb.Streams.Types
 import Control.Applicative
@@ -61,8 +62,8 @@ data DescribeStream
   , _dstLimit ∷ !(Maybe Int)
     -- ^ The maximum number of shard objects to return.
 
-  , _dstStreamId ∷ !StreamId
-    -- ^ The unique ID of the stream to be described.
+  , _dstStreamArn ∷ !Arn
+    -- ^ The ARN of the stream to be described.
 
   } deriving (Eq, Ord, Show, Read, Typeable)
 
@@ -75,19 +76,19 @@ data DescribeStream
 -- @
 --
 describeStream
-  ∷ StreamId
+  ∷ Arn
   → DescribeStream
-describeStream streamId = DescribeStream
+describeStream streamArn = DescribeStream
   { _dstExclusiveStartShardId = Nothing
   , _dstLimit = Nothing
-  , _dstStreamId = streamId
+  , _dstStreamArn = streamArn
   }
 
 instance ToJSON DescribeStream where
   toJSON DescribeStream{..} = object
     [ "ExclusiveStartShardId" .= _dstExclusiveStartShardId
     , "Limit" .= _dstLimit
-    , "StreamId".= _dstStreamId
+    , "StreamArn".= _dstStreamArn
     ]
 
 instance FromJSON DescribeStream where
@@ -96,7 +97,7 @@ instance FromJSON DescribeStream where
       pure DescribeStream
         ⊛ o .:? "ExclusiveStartShardId"
         ⊛ o .:? "Limit"
-        ⊛ o .: "StreamId"
+        ⊛ o .: "StreamArn"
 
 -- | A lens for '_dstExclusiveStartShardId'.
 --
@@ -130,21 +131,21 @@ dstLimit i DescribeStream{..} =
     <$> i _dstLimit
 {-# INLINE dstLimit #-}
 
--- | A lens for '_dstStreamId'.
+-- | A lens for '_dstStreamArn'.
 --
 -- @
--- 'dstStreamId' ∷ Lens' 'DescribeStream' 'StreamId'
+-- 'dstStreamArn' ∷ Lens' 'DescribeStream' 'StreamArn'
 -- @
 --
-dstStreamId
+dstStreamArn
   ∷ Functor f
-  ⇒ (StreamId → f StreamId)
+  ⇒ (Arn → f Arn)
   → DescribeStream
   → f DescribeStream
-dstStreamId i DescribeStream{..} =
-  (\_dstStreamId → DescribeStream{..})
-    <$> i _dstStreamId
-{-# INLINE dstStreamId #-}
+dstStreamArn i DescribeStream{..} =
+  (\_dstStreamArn → DescribeStream{..})
+    <$> i _dstStreamArn
+{-# INLINE dstStreamArn #-}
 
 data DescribeStreamResponse
   = DescribeStreamResponse

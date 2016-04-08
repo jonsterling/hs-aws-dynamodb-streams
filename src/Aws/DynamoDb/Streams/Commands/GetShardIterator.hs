@@ -36,7 +36,7 @@ module Aws.DynamoDb.Streams.Commands.GetShardIterator
 , gsiSequenceNumber
 , gsiShardId
 , gsiShardIteratorType
-, gsiStreamId
+, gsiStreamArn
 
   -- * Response
 , GetShardIteratorResponse(..)
@@ -45,6 +45,7 @@ module Aws.DynamoDb.Streams.Commands.GetShardIterator
 ) where
 
 import Aws.Core
+import Aws.General (Arn)
 import Aws.DynamoDb.Streams.Core
 import Aws.DynamoDb.Streams.Types
 import Control.Applicative
@@ -69,7 +70,7 @@ data GetShardIterator
     -- ^ Determines how the shard iterator is used to start reading stream
     -- records from the shard.
 
-  , _gsiStreamId ∷ !StreamId
+  , _gsiStreamArn ∷ !Arn
   } deriving (Eq, Ord, Read, Show, Typeable)
 
 -- | A basic 'GetShardIterator' request for a given stream id.
@@ -81,13 +82,13 @@ data GetShardIterator
 -- @
 --
 getShardIterator
-  ∷ StreamId
+  ∷ Arn
   → ShardId
   → ShardIteratorType
   → GetShardIterator
 getShardIterator stream shard iteratorType =
   GetShardIterator
-    { _gsiStreamId = stream
+    { _gsiStreamArn = stream
     , _gsiShardIteratorType = iteratorType
     , _gsiShardId = shard
     , _gsiSequenceNumber = Nothing
@@ -98,7 +99,7 @@ instance ToJSON GetShardIterator where
     [ "SequenceNumber" .= _gsiSequenceNumber
     , "ShardId" .= _gsiShardId
     , "ShardIteratorType" .= _gsiShardIteratorType
-    , "StreamId" .= _gsiStreamId
+    , "StreamArn" .= _gsiStreamArn
     ]
 
 instance FromJSON GetShardIterator where
@@ -108,7 +109,7 @@ instance FromJSON GetShardIterator where
         ⊛ o .:? "SequenceNumber"
         ⊛ o .: "ShardId"
         ⊛ o .: "ShardIteratorType"
-        ⊛ o .: "StreamId"
+        ⊛ o .: "StreamArn"
 
 -- | A lens for '_gsiSequenceNumber'.
 --
@@ -158,21 +159,21 @@ gsiShardIteratorType i GetShardIterator{..} =
     <$> i _gsiShardIteratorType
 {-# INLINE gsiShardIteratorType #-}
 
--- | A lens for '_gsiStreamId'.
+-- | A lens for '_gsiStreamArn'.
 --
 -- @
--- 'gsiStreamId' ∷ Lens' 'GetShardIterator' 'StreamId'
+-- 'gsiStreamArn' ∷ Lens' 'GetShardIterator' 'StreamArn'
 -- @
 --
-gsiStreamId
+gsiStreamArn
   ∷ Functor f
-  ⇒ (StreamId → f StreamId)
+  ⇒ (Arn → f Arn)
   → GetShardIterator
   → f GetShardIterator
-gsiStreamId i GetShardIterator{..} =
-  (\_gsiStreamId → GetShardIterator{..})
-    <$> i _gsiStreamId
-{-# INLINE gsiStreamId #-}
+gsiStreamArn i GetShardIterator{..} =
+  (\_gsiStreamArn → GetShardIterator{..})
+    <$> i _gsiStreamArn
+{-# INLINE gsiStreamArn #-}
 
 data GetShardIteratorResponse
   = GetShardIteratorResponse

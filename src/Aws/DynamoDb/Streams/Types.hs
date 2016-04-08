@@ -129,17 +129,21 @@ module Aws.DynamoDb.Streams.Types
 , _StatusDisabled
 
   -- ** Stream Description
-, StreamId
+, Stream(..)
+, StreamLabel
 , StreamDescription(..)
   -- *** Lenses
 , sdCreationRequestDateTime
 , sdKeySchema
 , sdLastEvaluatedShardId
 , sdShards
-, sdStreamARN
-, sdStreamId
+, sStreamArn
+, sdStreamArn
+, sStreamLabel
+, sdStreamLabel
 , sdStreamStatus
 , sdStreamViewType
+, sTableName
 , sdTableName
 ) where
 
@@ -966,18 +970,18 @@ strStreamViewType i StreamRecord{..} =
 --
 -- Length constraints: @56 ≤ n ≤ 128@.
 --
-newtype StreamId
-  = StreamId
+newtype StreamLabel
+  = StreamLabel
   { _stidText ∷ T.Text
   } deriving (Eq, Ord, Typeable, Show, Read)
 
-instance ToJSON StreamId where
+instance ToJSON StreamLabel where
   toJSON = toJSON ∘ _stidText
 
-instance FromJSON StreamId where
+instance FromJSON StreamLabel where
   parseJSON =
-    withText "StreamId" $
-      pure ∘ StreamId
+    withText "StreamLabel" $
+      pure ∘ StreamLabel
 
 data StreamStatus
   = StatusEnabling
@@ -1092,6 +1096,75 @@ _StatusDisabled =
       fro = either pure (const $ pure StatusDisabled)
 {-# INLINE _StatusDisabled #-}
 
+data Stream
+  = Stream
+  { _sStreamArn ∷ !(Maybe Arn)
+  , _sStreamLabel ∷ !(Maybe StreamLabel)
+  , _sTableName ∷ !(Maybe T.Text)
+  } deriving (Eq, Ord, Show, Read, Typeable)
+
+instance ToJSON Stream where
+  toJSON Stream{..} = object
+    [ "StreamArn" .= _sStreamArn
+    , "StreamLabel" .= _sStreamLabel
+    , "TableName" .= _sTableName
+    ]
+
+instance FromJSON Stream where
+  parseJSON =
+    withObject "Stream" $ \o →
+      pure Stream
+        ⊛ o .:? "StreamArn"
+        ⊛ o .:? "StreamLabel"
+        ⊛ o .:? "TableName"
+
+-- | A lens for '_sdStreamArn'.
+--
+-- @
+-- 'sdStreamArn' ∷ Lens' 'StreamDescription' ('Maybe' 'T.Text')
+-- @
+--
+sStreamArn
+  ∷ Functor f
+  ⇒ (Maybe Arn → f (Maybe Arn))
+  → Stream
+  → f Stream
+sStreamArn i Stream{..} =
+  (\_sStreamArn → Stream{..})
+    <$> i _sStreamArn
+{-# INLINE sStreamArn #-}
+
+-- | A lens for '_sdStreamLabel'.
+--
+-- @
+-- 'sdStreamLabel' ∷ Lens' 'StreamDescription' ('Maybe' 'StreamLabel')
+-- @
+--
+sStreamLabel
+  ∷ Functor f
+  ⇒ (Maybe StreamLabel → f (Maybe StreamLabel))
+  → Stream
+  → f Stream
+sStreamLabel i Stream{..} =
+  (\_sStreamLabel → Stream{..})
+    <$> i _sStreamLabel
+{-# INLINE sStreamLabel #-}
+
+-- | A lens for '_sdTableName'.
+--
+-- @
+-- 'sdTableName' ∷ Lens' 'StreamDescription' ('Maybe' 'T.Text')
+-- @
+--
+sTableName
+  ∷ Functor f
+  ⇒ (Maybe T.Text → f (Maybe T.Text))
+  → Stream
+  → f Stream
+sTableName i Stream{..} =
+  (\_sTableName → Stream{..})
+    <$> i _sTableName
+{-# INLINE sTableName #-}
 
 data StreamDescription
   = StreamDescription
@@ -1099,8 +1172,8 @@ data StreamDescription
   , _sdKeySchema ∷ ![KeySchemaElement]
   , _sdLastEvaluatedShardId ∷ !(Maybe ShardId)
   , _sdShards ∷ ![Shard]
-  , _sdStreamARN ∷ !(Maybe T.Text)
-  , _sdStreamId ∷ !(Maybe StreamId)
+  , _sdStreamArn ∷ !(Maybe Arn)
+  , _sdStreamLabel ∷ !(Maybe StreamLabel)
   , _sdStreamStatus ∷ !(Maybe StreamStatus)
   , _sdStreamViewType ∷ !(Maybe StreamViewType)
   , _sdTableName ∷ !(Maybe T.Text)
@@ -1111,8 +1184,8 @@ instance ToJSON StreamDescription where
     [ "CreationRequestDateTime" .= (Number ∘ fromInteger ∘ round ∘ utcTimeToPOSIXSeconds <$> _sdCreationRequestDateTime)
     , "KeySchema" .= _sdKeySchema
     , "Shards" .= _sdShards
-    , "StreamARN" .= _sdStreamARN
-    , "StreamId" .= _sdStreamId
+    , "StreamArn" .= _sdStreamArn
+    , "StreamLabel" .= _sdStreamLabel
     , "StreamStatus" .= _sdStreamStatus
     , "StreamViewType" .= _sdStreamViewType
     , "TableName" .= _sdTableName
@@ -1126,8 +1199,8 @@ instance FromJSON StreamDescription where
         ⊛ o .:? "KeySchema" .!= []
         ⊛ o .:? "LastEvaluatedShardId"
         ⊛ o .:? "Shards" .!= []
-        ⊛ o .:? "StreamARN"
-        ⊛ o .:? "StreamId"
+        ⊛ o .:? "StreamArn"
+        ⊛ o .:? "StreamLabel"
         ⊛ o .:? "StreamStatus"
         ⊛ o .:? "StreamViewType"
         ⊛ o .:? "TableName"
@@ -1196,37 +1269,37 @@ sdShards i StreamDescription{..} =
     <$> i _sdShards
 {-# INLINE sdShards #-}
 
--- | A lens for '_sdStreamARN'.
+-- | A lens for '_sdStreamArn'.
 --
 -- @
--- 'sdStreamARN' ∷ Lens' 'StreamDescription' ('Maybe' 'T.Text')
+-- 'sdStreamArn' ∷ Lens' 'StreamDescription' ('Maybe' 'T.Text')
 -- @
 --
-sdStreamARN
+sdStreamArn
   ∷ Functor f
-  ⇒ (Maybe T.Text → f (Maybe T.Text))
+  ⇒ (Maybe Arn → f (Maybe Arn))
   → StreamDescription
   → f StreamDescription
-sdStreamARN i StreamDescription{..} =
-  (\_sdStreamARN → StreamDescription{..})
-    <$> i _sdStreamARN
-{-# INLINE sdStreamARN #-}
+sdStreamArn i StreamDescription{..} =
+  (\_sdStreamArn → StreamDescription{..})
+    <$> i _sdStreamArn
+{-# INLINE sdStreamArn #-}
 
--- | A lens for '_sdStreamId'.
+-- | A lens for '_sdStreamLabel'.
 --
 -- @
--- 'sdStreamId' ∷ Lens' 'StreamDescription' ('Maybe' 'StreamId')
+-- 'sdStreamLabel' ∷ Lens' 'StreamDescription' ('Maybe' 'StreamLabel')
 -- @
 --
-sdStreamId
+sdStreamLabel
   ∷ Functor f
-  ⇒ (Maybe StreamId → f (Maybe StreamId))
+  ⇒ (Maybe StreamLabel → f (Maybe StreamLabel))
   → StreamDescription
   → f StreamDescription
-sdStreamId i StreamDescription{..} =
-  (\_sdStreamId → StreamDescription{..})
-    <$> i _sdStreamId
-{-# INLINE sdStreamId #-}
+sdStreamLabel i StreamDescription{..} =
+  (\_sdStreamLabel → StreamDescription{..})
+    <$> i _sdStreamLabel
+{-# INLINE sdStreamLabel #-}
 
 -- | A lens for '_sdStreamStatus'.
 --
