@@ -139,15 +139,19 @@ instance AwsType StreamsAction where
   toText = streamsActionToText
   parse = parseStreamsAction
 
--- | Currently, only 'UsEast1' and 'EuWest1' are supported.
---
 streamsServiceEndpoint
   ∷ Region
   → B8.ByteString
 streamsServiceEndpoint = \case
-  UsEast1 → "streams.preview-dynamodb.us-east-1.amazonaws.com"
-  EuWest1 → "streams.preview-dynamodb.eu-west-1.amazonaws.com"
-  region → error $ "Unsupported region: " ⊕ show region
+  ApNortheast1 → "streams.dynamodb.ap-northeast-1.amazonaws.com"
+  ApSoutheast1 → "streams.dynamodb.ap-southeast-1.amazonaws.com"
+  ApSoutheast2 → "streams.dynamodb.ap-southeast-2.amazonaws.com"
+  EuWest1 → "streams.dynamodb.eu-west-1.amazonaws.com"
+  SaEast1 → "streams.dynamodb.sa-east-1.amazonaws.com"
+  UsEast1 → "streams.dynamodb.us-east-1.amazonaws.com"
+  UsWest1 → "streams.dynamodb.us-west-1.amazonaws.com"
+  UsWest2 → "streams.dynamodb.us-west-2.amazonaws.com"
+  CustomEndpoint u p → T.encodeUtf8 u <> ":" <> fromString (show p)
 
 data StreamsMetadata
   = StreamsMetadata
